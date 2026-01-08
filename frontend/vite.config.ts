@@ -8,6 +8,8 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  // GitHub Pages 部署路徑
+  base: process.env.GITHUB_ACTIONS ? '/vendor/' : '/',
   server: {
     port: 3000,
     open: true,
