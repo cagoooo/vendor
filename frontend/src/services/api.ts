@@ -302,10 +302,17 @@ export async function updateStock(itemId: string, quantity: number): Promise<Api
     }
 }
 
-export async function addMenuItem(name: string, price: number, stock: number, category: string = 'main'): Promise<ApiResponse> {
+export async function addMenuItem(
+    name: string,
+    price: number,
+    stock: number,
+    category: string = 'main',
+    imageUrl?: string
+): Promise<ApiResponse> {
     try {
         const docRef = await addDoc(collection(db, 'menuItems'), {
             name, price, stock, category,
+            imageUrl: imageUrl || '',
             isActive: true,
             createdAt: Timestamp.now(),
             updatedAt: Timestamp.now()
@@ -314,6 +321,22 @@ export async function addMenuItem(name: string, price: number, stock: number, ca
     } catch (error) {
         console.error('addMenuItem error:', error);
         return { status: 'error', message: 'Failed to add item' };
+    }
+}
+
+export async function updateMenuItem(
+    itemId: string,
+    updates: { name?: string; price?: number; stock?: number; category?: string; imageUrl?: string; isActive?: boolean }
+): Promise<ApiResponse> {
+    try {
+        await updateDoc(doc(db, 'menuItems', itemId), {
+            ...updates,
+            updatedAt: Timestamp.now()
+        });
+        return { status: 'success' };
+    } catch (error) {
+        console.error('updateMenuItem error:', error);
+        return { status: 'error', message: 'Failed to update item' };
     }
 }
 
