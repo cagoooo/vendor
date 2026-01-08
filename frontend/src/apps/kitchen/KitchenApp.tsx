@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useOrders } from '../../hooks/useOrders';
+import { useAuth } from '../../contexts/AuthContext';
 import {
     updateOrderStatus,
     cancelOrder,
@@ -11,9 +12,9 @@ import {
     clearAllOrders
 } from '../../services/api';
 import {
-    Flame, Lock, RefreshCw, Settings, Trash2,
+    Flame, RefreshCw, Settings, Trash2,
     ChefHat, Package, PieChart, Clock, Plus, Minus,
-    DollarSign, ShoppingBag, TrendingUp
+    DollarSign, ShoppingBag, TrendingUp, LogOut
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { Bar, Doughnut } from 'react-chartjs-2';
@@ -21,12 +22,10 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearSca
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
-const ADMIN_PASSWORD = 'smes4321';
-
 type Tab = 'orders' | 'inventory' | 'stats';
 
 export function KitchenApp() {
-    const [isLocked, setIsLocked] = useState(true);
+    const { profile, logout, isOwner } = useAuth();
     const [activeTab, setActiveTab] = useState<Tab>('orders');
     const [isShopOpen, setIsShopOpen] = useState(true);
     const [waitTime, setWaitTime] = useState(15);
@@ -61,12 +60,10 @@ export function KitchenApp() {
 
     // 載入系統設定
     useEffect(() => {
-        if (!isLocked) {
-            loadSystemConfig();
-            if (activeTab === 'inventory') loadInventory();
-            if (activeTab === 'stats') loadStats();
-        }
-    }, [isLocked, activeTab]);
+        loadSystemConfig();
+        if (activeTab === 'inventory') loadInventory();
+        if (activeTab === 'stats') loadStats();
+    }, [activeTab]);
 
     const loadSystemConfig = async () => {
         const result = await getMenu();
@@ -90,29 +87,7 @@ export function KitchenApp() {
         }
     };
 
-    const checkPassword = () => {
-        Swal.fire({
-            title: '廚房戰情室',
-            input: 'password',
-            inputPlaceholder: '輸入密碼',
-            background: '#1f2937',
-            color: '#fff',
-            confirmButtonColor: '#f97316',
-        }).then((result) => {
-            if (result.value === ADMIN_PASSWORD) {
-                setIsLocked(false);
-                sessionStorage.setItem('kitchenAuth', 'true');
-            } else if (result.value) {
-                Swal.fire({ icon: 'error', title: '密碼錯誤', background: '#1f2937', color: '#fff' });
-            }
-        });
-    };
 
-    useEffect(() => {
-        if (sessionStorage.getItem('kitchenAuth') === 'true') {
-            setIsLocked(false);
-        }
-    }, []);
 
     const handleStatusUpdate = async (orderId: string, newStatus: string, total?: number) => {
         if (newStatus === 'Paid') {
@@ -181,24 +156,7 @@ export function KitchenApp() {
         }
     };
 
-    // 鎖定畫面
-    if (isLocked) {
-        return (
-            <div className="min-h-screen bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center p-4">
-                <audio ref={audioRef} src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto" />
-                <div className="text-center p-8 bg-gray-800 rounded-2xl shadow-2xl border border-gray-700 w-full max-w-sm">
-                    <Lock className="w-16 h-16 text-orange-500 mx-auto mb-6" />
-                    <h2 className="text-2xl font-bold text-white mb-4">廚房戰情室</h2>
-                    <button
-                        onClick={checkPassword}
-                        className="w-full bg-orange-600 hover:bg-orange-500 text-white font-bold py-3 rounded-lg shadow-lg transition"
-                    >
-                        輸入密碼進入
-                    </button>
-                </div>
-            </div>
-        );
-    }
+
 
     return (
         <div className="min-h-screen bg-gray-900 text-gray-100">
@@ -267,41 +225,71 @@ export function KitchenApp() {
                         </button>
                     </div>
 
-                    {/* Settings */}
-                    <button
-                        onClick={() => {
-                            Swal.fire({
-                                title: '管理設定',
-                                html: `
-                  <div class="space-y-3">
-                    <button id="clear-btn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg flex items-center justify-center gap-2">
-                      <i class="fas fa-trash-alt"></i> 清除所有資料
-                    </button>
-                    <button id="lock-btn" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg flex items-center justify-center gap-2">
-                      <i class="fas fa-lock"></i> 鎖定螢幕
-                    </button>
-                  </div>
-                `,
-                                showConfirmButton: false,
-                                showCloseButton: true,
-                                background: '#1f2937',
-                                color: '#fff',
-                                didOpen: () => {
-                                    document.getElementById('clear-btn')?.addEventListener('click', () => {
-                                        Swal.close();
-                                        handleClearAll();
-                                    });
-                                    document.getElementById('lock-btn')?.addEventListener('click', () => {
-                                        sessionStorage.removeItem('kitchenAuth');
-                                        window.location.reload();
-                                    });
-                                },
-                            });
-                        }}
-                        className="bg-gray-700 hover:bg-gray-600 text-gray-400 hover:text-red-400 p-2.5 rounded-lg transition"
-                    >
-                        <Settings className="w-5 h-5" />
-                    </button>
+                    {/* User Profile & Settings */}
+                    <div className="flex items-center gap-2">
+                        {/* User Info */}
+                        {profile && (
+                            <div className="hidden sm:flex items-center gap-2 bg-gray-700 rounded-lg px-3 py-1.5">
+                                {profile.photoURL ? (
+                                    <img src={profile.photoURL} alt="" className="w-6 h-6 rounded-full" />
+                                ) : (
+                                    <div className="w-6 h-6 rounded-full bg-orange-500 flex items-center justify-center text-xs font-bold text-white">
+                                        {profile.name?.charAt(0) || 'U'}
+                                    </div>
+                                )}
+                                <span className="text-sm text-gray-300">{profile.name || profile.email}</span>
+                                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${isOwner ? 'bg-orange-500 text-white' : 'bg-gray-600 text-gray-300'
+                                    }`}>
+                                    {isOwner ? '店長' : '員工'}
+                                </span>
+                            </div>
+                        )}
+
+                        {/* Settings Button */}
+                        <button
+                            onClick={() => {
+                                Swal.fire({
+                                    title: '管理設定',
+                                    html: `
+                      <div class="space-y-3">
+                        ${isOwner ? `<button id="clear-btn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg flex items-center justify-center gap-2">
+                          <i class="fas fa-trash-alt"></i> 清除所有資料
+                        </button>` : ''}
+                        <button id="logout-btn" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg flex items-center justify-center gap-2">
+                          <i class="fas fa-sign-out-alt"></i> 登出
+                        </button>
+                      </div>
+                    `,
+                                    showConfirmButton: false,
+                                    showCloseButton: true,
+                                    background: '#1f2937',
+                                    color: '#fff',
+                                    didOpen: () => {
+                                        document.getElementById('clear-btn')?.addEventListener('click', () => {
+                                            Swal.close();
+                                            handleClearAll();
+                                        });
+                                        document.getElementById('logout-btn')?.addEventListener('click', () => {
+                                            Swal.close();
+                                            logout();
+                                        });
+                                    },
+                                });
+                            }}
+                            className="bg-gray-700 hover:bg-gray-600 text-gray-400 hover:text-red-400 p-2.5 rounded-lg transition"
+                        >
+                            <Settings className="w-5 h-5" />
+                        </button>
+
+                        {/* Logout Button */}
+                        <button
+                            onClick={logout}
+                            className="bg-gray-700 hover:bg-red-600 text-gray-400 hover:text-white p-2.5 rounded-lg transition"
+                            title="登出"
+                        >
+                            <LogOut className="w-5 h-5" />
+                        </button>
+                    </div>
                 </div>
             </header>
 

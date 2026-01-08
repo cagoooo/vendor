@@ -1,9 +1,10 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getAuth, connectAuthEmulator } from 'firebase/auth';
+import { getStorage, connectStorageEmulator } from 'firebase/storage';
 import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
 
-// Firebase 設定 - 請替換成您的專案設定
+// Firebase 設定
 const firebaseConfig = {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "YOUR_API_KEY",
     authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "YOUR_PROJECT.firebaseapp.com",
@@ -19,12 +20,14 @@ const app = initializeApp(firebaseConfig);
 // 初始化服務
 export const db = getFirestore(app);
 export const auth = getAuth(app);
+export const storage = getStorage(app);
 export const functions = getFunctions(app);
 
 // 開發模式使用模擬器
 if (import.meta.env.DEV && import.meta.env.VITE_USE_EMULATOR === 'true') {
     connectFirestoreEmulator(db, 'localhost', 8080);
     connectAuthEmulator(auth, 'http://localhost:9099');
+    connectStorageEmulator(storage, 'localhost', 9199);
     connectFunctionsEmulator(functions, 'localhost', 5001);
     console.log('🔧 Using Firebase Emulators');
 }
