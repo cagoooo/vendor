@@ -248,34 +248,47 @@ export function CustomerApp() {
             <div className="max-w-4xl mx-auto px-3 sm:px-4 lg:px-6">
                 {/* 顧客資訊卡片 */}
                 <div className="relative -mt-8 sm:-mt-10 mb-4">
-                    <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 p-4 sm:p-5 border border-gray-100">
-                        <div className="flex items-center gap-2 mb-3">
-                            <span className="text-xl">👋</span>
-                            <h2 className="font-bold text-gray-700">誰要吃？</h2>
+                    <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 p-4 sm:p-6 border border-gray-100">
+                        <div className="flex items-center gap-2 mb-4">
+                            <span className="text-2xl">👋</span>
+                            <h2 className="font-bold text-gray-700 text-lg">誰要吃？</h2>
                         </div>
-                        <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-3">
+
+                        {/* 班級與姓名 - 手機垂直排列 */}
+                        <div className="flex flex-col sm:flex-row gap-3 mb-3">
+                            <div className="sm:w-1/3">
+                                <label className="text-xs text-gray-400 font-medium mb-1.5 block">班級</label>
+                                <input
+                                    type="text"
+                                    placeholder="如：601"
+                                    value={cart.customerClass}
+                                    onChange={e => cart.setCustomerInfo(e.target.value, cart.customerName)}
+                                    className="w-full bg-gray-50 border-2 border-gray-100 rounded-xl px-4 py-3 text-center font-bold text-lg focus:outline-none focus:border-orange-400 focus:bg-white transition placeholder-gray-300"
+                                />
+                            </div>
+                            <div className="sm:flex-1">
+                                <label className="text-xs text-gray-400 font-medium mb-1.5 block">姓名</label>
+                                <input
+                                    type="text"
+                                    placeholder="你的名字"
+                                    value={cart.customerName}
+                                    onChange={e => cart.setCustomerInfo(cart.customerClass, e.target.value)}
+                                    className="w-full bg-gray-50 border-2 border-gray-100 rounded-xl px-4 py-3 font-bold text-lg focus:outline-none focus:border-orange-400 focus:bg-white transition placeholder-gray-300"
+                                />
+                            </div>
+                        </div>
+
+                        {/* 備註欄 */}
+                        <div>
+                            <label className="text-xs text-gray-400 font-medium mb-1.5 block">備註 (選填)</label>
                             <input
                                 type="text"
-                                placeholder="班級"
-                                value={cart.customerClass}
-                                onChange={e => cart.setCustomerInfo(e.target.value, cart.customerName)}
-                                className="col-span-1 w-full bg-gray-50 border-2 border-gray-100 rounded-xl px-3 py-2.5 sm:py-3 text-center font-bold text-base sm:text-lg focus:outline-none focus:border-orange-400 focus:bg-white transition placeholder-gray-300"
-                            />
-                            <input
-                                type="text"
-                                placeholder="你的名字"
-                                value={cart.customerName}
-                                onChange={e => cart.setCustomerInfo(cart.customerClass, e.target.value)}
-                                className="col-span-2 w-full bg-gray-50 border-2 border-gray-100 rounded-xl px-3 py-2.5 sm:py-3 font-bold text-base sm:text-lg focus:outline-none focus:border-orange-400 focus:bg-white transition placeholder-gray-300"
+                                placeholder="例：不要香菜、去冰、加辣..."
+                                value={cart.note}
+                                onChange={e => cart.setNote(e.target.value)}
+                                className="w-full bg-gray-50 border-2 border-gray-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-orange-400 focus:bg-white transition placeholder-gray-300"
                             />
                         </div>
-                        <input
-                            type="text"
-                            placeholder="📝 備註 (例: 不要香菜、微冰...)"
-                            value={cart.note}
-                            onChange={e => cart.setNote(e.target.value)}
-                            className="w-full bg-gray-50 border-2 border-gray-100 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-orange-400 focus:bg-white transition placeholder-gray-400"
-                        />
                     </div>
                 </div>
 
@@ -303,8 +316,8 @@ export function CustomerApp() {
                                     key={cat}
                                     onClick={() => setCategory(cat)}
                                     className={`whitespace-nowrap px-4 sm:px-5 py-2 rounded-full text-sm font-bold shadow-sm transition-all active:scale-95 ${isActive
-                                            ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-orange-200'
-                                            : 'bg-white border-2 border-gray-100 text-gray-600 hover:border-orange-200'
+                                        ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-orange-200'
+                                        : 'bg-white border-2 border-gray-100 text-gray-600 hover:border-orange-200'
                                         }`}
                                 >
                                     {labels[cat]}
@@ -368,8 +381,8 @@ export function CustomerApp() {
                         onClick={handleSubmitOrder}
                         disabled={isSubmitting || cart.items.length === 0}
                         className={`flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-3.5 rounded-2xl font-bold text-base sm:text-lg shadow-lg transition-all active:scale-95 ${cart.items.length === 0
-                                ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                                : 'bg-gradient-to-r from-gray-800 to-gray-900 text-white shadow-gray-400/30 hover:shadow-xl'
+                            ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                            : 'bg-gradient-to-r from-gray-800 to-gray-900 text-white shadow-gray-400/30 hover:shadow-xl'
                             }`}
                     >
                         {isSubmitting ? (
