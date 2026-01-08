@@ -194,34 +194,31 @@ export function CustomerApp() {
     return (
         <div className="min-h-screen bg-gradient-to-b from-gray-50 to-orange-50/30 pb-28">
             {/* Hero Banner */}
-            <div className="relative h-48 sm:h-56 md:h-64 lg:h-72 overflow-hidden">
+            <div className="relative h-52 sm:h-60 md:h-72 overflow-hidden">
                 <img
                     src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=1200&auto=format&fit=crop"
                     className="w-full h-full object-cover"
                     alt="Food Banner"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 lg:p-8">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-6 lg:p-8">
                     <div className="max-w-4xl mx-auto">
-                        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white mb-1 flex items-center gap-2">
-                            <span className="text-3xl sm:text-4xl">🎈</span>
+                        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white mb-3 flex items-center gap-3">
+                            <span className="text-4xl sm:text-5xl">🎈</span>
                             校慶園遊會
                         </h1>
-                        <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-sm">
-                            <span className="text-orange-300 flex items-center gap-1">
+                        <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+                            <span className="text-orange-300 flex items-center gap-1.5 text-sm sm:text-base">
                                 <Utensils className="w-4 h-4" />
                                 線上點餐
                             </span>
-                            <span className="text-white/60">•</span>
-                            <span className="text-white/80">即時叫號</span>
+                            <span className="w-1 h-1 rounded-full bg-white/40 hidden sm:block"></span>
+                            <span className="text-white/80 text-sm sm:text-base">即時叫號</span>
                             {systemConfig?.waitTime && (
-                                <>
-                                    <span className="text-white/60">•</span>
-                                    <span className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-white text-xs font-medium">
-                                        <Clock className="w-3 h-3 inline mr-1" />
-                                        約 {systemConfig.waitTime} 分鐘
-                                    </span>
-                                </>
+                                <span className="bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full text-white text-xs sm:text-sm font-medium flex items-center gap-1.5">
+                                    <Clock className="w-3.5 h-3.5" />
+                                    約 {systemConfig.waitTime} 分鐘
+                                </span>
                             )}
                         </div>
                     </div>
@@ -247,16 +244,16 @@ export function CustomerApp() {
             {/* 主內容區 */}
             <div className="max-w-4xl mx-auto px-3 sm:px-4 lg:px-6">
                 {/* 顧客資訊卡片 */}
-                <div className="relative -mt-8 sm:-mt-10 mb-4">
-                    <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 p-4 sm:p-6 border border-gray-100">
+                <div className="relative -mt-8 md:-mt-10 mb-4">
+                    <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 p-4 md:p-6 border border-gray-100">
                         <div className="flex items-center gap-2 mb-4">
                             <span className="text-2xl">👋</span>
                             <h2 className="font-bold text-gray-700 text-lg">誰要吃？</h2>
                         </div>
 
-                        {/* 班級與姓名 - 手機垂直排列 */}
-                        <div className="flex flex-col sm:flex-row gap-3 mb-3">
-                            <div className="sm:w-1/3">
+                        {/* 班級與姓名 - 平板以上才水平排列 */}
+                        <div className="space-y-3 md:space-y-0 md:flex md:gap-3 mb-3">
+                            <div className="md:w-1/3">
                                 <label className="text-xs text-gray-400 font-medium mb-1.5 block">班級</label>
                                 <input
                                     type="text"
@@ -266,7 +263,7 @@ export function CustomerApp() {
                                     className="w-full bg-gray-50 border-2 border-gray-100 rounded-xl px-4 py-3 text-center font-bold text-lg focus:outline-none focus:border-orange-400 focus:bg-white transition placeholder-gray-300"
                                 />
                             </div>
-                            <div className="sm:flex-1">
+                            <div className="md:flex-1">
                                 <label className="text-xs text-gray-400 font-medium mb-1.5 block">姓名</label>
                                 <input
                                     type="text"
@@ -404,6 +401,18 @@ export function CustomerApp() {
 
             {showCart && <CartDrawer onClose={() => setShowCart(false)} />}
             {showHistory && <OrderHistoryModal onClose={() => setShowHistory(false)} />}
+
+            {/* 管理入口 - 左下角浮動按鈕 */}
+            <a
+                href="/kitchen"
+                className="fixed bottom-24 left-4 bg-gray-800 hover:bg-orange-500 text-white p-3 rounded-full shadow-lg transition-all hover:scale-110 active:scale-95 z-30"
+                title="進入廚房管理"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+                    <circle cx="12" cy="12" r="3" />
+                </svg>
+            </a>
         </div>
     );
 }
