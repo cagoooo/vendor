@@ -413,7 +413,7 @@ export function CustomerApp() {
             <div className="fixed bottom-24 left-4 flex flex-col gap-2 z-30">
                 {/* 叫號顯示 */}
                 <Link
-                    to="/display"
+                    to={`/display/${classId}`}
                     className="bg-green-600 hover:bg-green-500 text-white p-3 rounded-full shadow-lg transition-all hover:scale-110 active:scale-95"
                     title="查看叫號"
                 >

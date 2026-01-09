@@ -100,7 +100,7 @@ export function DisplayApp() {
                 <div className="text-right flex flex-col items-end gap-1">
                     <div className="flex items-center gap-2">
                         <Link
-                            to="/"
+                            to={`/order/${classId}`}
                             className="flex items-center gap-1 px-3 py-1 rounded-full text-xs md:text-sm bg-orange-600/50 text-orange-200 border border-orange-500 hover:bg-orange-500 transition"
                         >
                             <Utensils className="w-3 h-3" />

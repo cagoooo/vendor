@@ -451,3 +451,87 @@ export async function clearClassOrders(classId: string): Promise<ApiResponse> {
         return { status: 'error', message: 'Failed to clear orders' };
     }
 }
+
+// ============ 班級管理 API ============
+
+export interface Kitchen {
+    id: string;
+    classId: string;
+    className: string;
+    ownerUid?: string;
+    ownerName?: string;
+    isOpen?: boolean;
+    createdAt?: Date;
+}
+
+/**
+ * 獲取所有班級廚房列表
+ */
+export async function getAllKitchens(): Promise<ApiResponse<Kitchen[]>> {
+    try {
+        const kitchensSnapshot = await getDocs(collection(db, 'kitchens'));
+        const kitchens: Kitchen[] = [];
+
+        for (const docSnap of kitchensSnapshot.docs) {
+            const data = docSnap.data();
+            // 檢查該班級是否有菜單（至少有一個菜品）
+            const menuSnapshot = await getDocs(
+                query(collection(db, `kitchens/${docSnap.id}/menuItems`), where('isActive', '==', true))
+            );
+            // 檢查系統設定
+            const configDoc = await getDoc(doc(db, `kitchens/${docSnap.id}/system/config`));
+            const isOpen = configDoc.exists() ? configDoc.data()?.isOpen !== false : true;
+
+            if (menuSnapshot.size > 0) {
+                kitchens.push({
+                    id: docSnap.id,
+                    classId: docSnap.id,
+                    className: data.className || docSnap.id,
+                    ownerUid: data.ownerUid,
+                    ownerName: data.ownerName,
+                    isOpen,
+                    createdAt: data.createdAt?.toDate()
+                });
+            }
+        }
+
+        return { status: 'success', data: kitchens };
+    } catch (error) {
+        console.error('getAllKitchens error:', error);
+        return { status: 'error', message: 'Failed to get kitchens' };
+    }
+}
+
+/**
+ * 建立新班級廚房
+ */
+export async function createKitchen(
+    classId: string,
+    className: string,
+    ownerUid?: string,
+    ownerName?: string
+): Promise<ApiResponse> {
+    try {
+        await setDoc(doc(db, 'kitchens', classId), {
+            classId,
+            className,
+            ownerUid,
+            ownerName,
+            createdAt: Timestamp.now(),
+            updatedAt: Timestamp.now()
+        });
+
+        // 建立預設系統設定
+        await setDoc(doc(db, `kitchens/${classId}/system/config`), {
+            isOpen: true,
+            waitTime: 15,
+            createdAt: Timestamp.now()
+        });
+
+        return { status: 'success' };
+    } catch (error) {
+        console.error('createKitchen error:', error);
+        return { status: 'error', message: 'Failed to create kitchen' };
+    }
+}
+

@@ -33,10 +33,12 @@ service cloud.firestore {
     
     // 班級廚房主文件
     match /kitchens/{classId} {
-      // owner 可以讀寫所有班級
-      allow read, write: if isOwner();
-      // 班級管理員可以讀取自己的班級
-      allow read: if canManageClass(classId);
+      // 公開讀取班級列表（顧客選擇班級用）
+      allow read: if true;
+      // owner 可以寫入所有班級
+      allow write: if isOwner();
+      // 班級管理員可以更新自己的班級（不能刪除）
+      allow update: if canManageClass(classId);
     }
     
     // 班級廚房子集合 - 菜單

@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { ClassSelectorPage } from './apps/customer/ClassSelectorPage';
 import { CustomerApp } from './apps/customer/CustomerApp';
 import { KitchenApp } from './apps/kitchen/KitchenApp';
 import { LoginPage } from './apps/kitchen/LoginPage';
@@ -55,9 +56,15 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
 function AppRoutes() {
   return (
     <Routes>
-      {/* 顧客點餐 - 公開 */}
-      <Route path="/" element={<CustomerApp />} />
-      <Route path="/order" element={<CustomerApp />} />
+      {/* 首頁 - 班級選擇 */}
+      <Route path="/" element={<ClassSelectorPage />} />
+
+      {/* 顧客點餐 - 公開，需指定班級 */}
+      <Route path="/order/:classId" element={<CustomerApp />} />
+
+      {/* 叫號顯示 - 公開，需指定班級 */}
+      <Route path="/display/:classId" element={<DisplayApp />} />
+      <Route path="/pickup/:classId" element={<DisplayApp />} />
 
       {/* 廚房管理 - 需登入 */}
       <Route path="/kitchen" element={
@@ -75,9 +82,10 @@ function AppRoutes() {
 
       <Route path="/login" element={<LoginPage />} />
 
-      {/* 叫號顯示 - 公開 */}
-      <Route path="/display" element={<DisplayApp />} />
-      <Route path="/pickup" element={<DisplayApp />} />
+      {/* 舊路由相容 - 導向首頁 */}
+      <Route path="/order" element={<Navigate to="/" replace />} />
+      <Route path="/display" element={<Navigate to="/" replace />} />
+      <Route path="/pickup" element={<Navigate to="/" replace />} />
 
       {/* 預設導向 */}
       <Route path="*" element={<Navigate to="/" replace />} />
@@ -99,4 +107,3 @@ function App() {
 }
 
 export default App;
-

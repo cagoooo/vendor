@@ -10,13 +10,16 @@ import {
     addClassMenuItem,
     getClassStats,
     setClassSystemConfig,
-    clearClassOrders
+    clearClassOrders,
+    getAllKitchens,
+    type Kitchen
 } from '../../services/classApi';
 import { OwnerDashboard } from '../../components/OwnerDashboard';
 import {
     Flame, RefreshCw, Settings, Trash2,
     ChefHat, Package, PieChart, Clock, Plus, Minus,
-    DollarSign, ShoppingBag, TrendingUp, LogOut, LayoutDashboard
+    DollarSign, ShoppingBag, TrendingUp, LogOut, LayoutDashboard,
+    ChevronDown, Store
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { Bar, Doughnut } from 'react-chartjs-2';
@@ -27,7 +30,7 @@ ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarEle
 type Tab = 'orders' | 'inventory' | 'stats' | 'dashboard';
 
 export function KitchenApp() {
-    const { profile, logout, isOwner, currentClassId } = useAuth();
+    const { profile, logout, isOwner, currentClassId: authClassId } = useAuth();
     const [activeTab, setActiveTab] = useState<Tab>('orders');
     const [isShopOpen, setIsShopOpen] = useState(true);
     const [waitTime, setWaitTime] = useState(15);
@@ -36,6 +39,32 @@ export function KitchenApp() {
     const [localCompletedSet, setLocalCompletedSet] = useState<Set<string>>(new Set());
     const audioRef = useRef<HTMLAudioElement>(null);
     const lastPendingCount = useRef(0);
+
+    // 班級切換功能（只有 owner 可用）
+    const [kitchens, setKitchens] = useState<Kitchen[]>([]);
+    const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
+    const [showClassDropdown, setShowClassDropdown] = useState(false);
+
+    // 實際使用的 classId：owner 可以切換，其他人使用自己的班級
+    const currentClassId = isOwner ? (selectedClassId || authClassId) : authClassId;
+
+    // 載入所有班級（owner 專用）
+    useEffect(() => {
+        if (isOwner) {
+            loadKitchens();
+        }
+    }, [isOwner]);
+
+    const loadKitchens = async () => {
+        const result = await getAllKitchens();
+        if (result.status === 'success' && result.data) {
+            setKitchens(result.data);
+            // 如果還沒選擇班級，預設選第一個
+            if (!selectedClassId && result.data.length > 0) {
+                setSelectedClassId(result.data[0].classId);
+            }
+        }
+    };
 
     // 使用班級訂單 Hook
     const { orders, pendingCount, refetch } = useClassOrders(currentClassId, true);
@@ -180,6 +209,43 @@ export function KitchenApp() {
                             <Flame className="w-6 h-6" />
                             KITCHEN
                         </h1>
+
+                        {/* 班級切換（只有 owner 可見）*/}
+                        {isOwner && kitchens.length > 0 && (
+                            <div className="relative">
+                                <button
+                                    onClick={() => setShowClassDropdown(!showClassDropdown)}
+                                    className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-500 text-white px-3 py-1.5 rounded-lg font-bold text-sm shadow-lg"
+                                >
+                                    <Store className="w-4 h-4" />
+                                    <span>{kitchens.find(k => k.classId === currentClassId)?.className || '選擇班級'}</span>
+                                    <ChevronDown className={`w-4 h-4 transition ${showClassDropdown ? 'rotate-180' : ''}`} />
+                                </button>
+                                {showClassDropdown && (
+                                    <div className="absolute top-full left-0 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 min-w-[180px] py-1">
+                                        {kitchens.map(k => (
+                                            <button
+                                                key={k.classId}
+                                                onClick={() => {
+                                                    setSelectedClassId(k.classId);
+                                                    setShowClassDropdown(false);
+                                                    setLocalCompletedSet(new Set()); // 切換班級時清除本地狀態
+                                                }}
+                                                className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-700 flex items-center justify-between ${k.classId === currentClassId ? 'text-orange-400 font-bold' : 'text-gray-300'
+                                                    }`}
+                                            >
+                                                <span>{k.className}</span>
+                                                {k.isOpen ? (
+                                                    <span className="text-[10px] bg-green-600 px-1.5 rounded text-white">營業</span>
+                                                ) : (
+                                                    <span className="text-[10px] bg-gray-600 px-1.5 rounded text-gray-300">休息</span>
+                                                )}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
                         {/* 營業狀態 */}
                         <div className="flex items-center gap-2 bg-gray-700 rounded-full px-3 py-1.5">
