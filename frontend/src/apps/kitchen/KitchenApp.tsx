@@ -191,6 +191,7 @@ export function KitchenApp() {
         if (!currentClassId) return;
         const result = await Swal.fire({
             title: '確定清除？',
+            text: '將清除所有訂單和銷售統計',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
@@ -200,8 +201,20 @@ export function KitchenApp() {
         if (result.isConfirmed) {
             await clearClassOrders(currentClassId);
             setLocalCompletedSet(new Set());
-            refetch();
-            loadStats();
+
+            // 顯示成功提示並刷新頁面
+            await Swal.fire({
+                title: '已清除！',
+                text: '所有資料已清除，頁面將自動刷新',
+                icon: 'success',
+                timer: 1500,
+                showConfirmButton: false,
+                background: '#1f2937',
+                color: '#fff',
+            });
+
+            // 刷新頁面以同步所有視圖的數據
+            window.location.reload();
         }
     };
 
