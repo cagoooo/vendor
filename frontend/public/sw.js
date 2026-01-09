@@ -1,4 +1,4 @@
-const CACHE_NAME = 'campus-food-v1';
+const CACHE_NAME = 'campus-food-v2';
 const STATIC_ASSETS = [
     '/',
     '/index.html',
@@ -38,11 +38,22 @@ self.addEventListener('fetch', (event) => {
     const url = new URL(event.request.url);
     if (url.origin !== location.origin) return;
 
+    // Handle navigation requests (SPA routing)
+    if (event.request.mode === 'navigate') {
+        event.respondWith(
+            fetch(event.request)
+                .catch(() => caches.match('/index.html'))
+                .then((response) => response || caches.match('/index.html'))
+        );
+        return;
+    }
+
+    // Handle other requests
     event.respondWith(
         fetch(event.request)
             .then((response) => {
                 // Cache successful responses
-                if (response.ok) {
+                if (response && response.ok) {
                     const responseClone = response.clone();
                     caches.open(CACHE_NAME).then((cache) => {
                         cache.put(event.request, responseClone);
@@ -50,9 +61,11 @@ self.addEventListener('fetch', (event) => {
                 }
                 return response;
             })
-            .catch(() => {
+            .catch(async () => {
                 // Return from cache if network fails
-                return caches.match(event.request);
+                const cached = await caches.match(event.request);
+                return cached || new Response('Not Found', { status: 404 });
             })
     );
 });
+
