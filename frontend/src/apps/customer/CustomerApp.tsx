@@ -212,7 +212,7 @@ export function CustomerApp() {
                     <div className="max-w-4xl mx-auto">
                         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white mb-3 flex items-center gap-3">
                             <span className="text-4xl sm:text-5xl">🎈</span>
-                            校慶園遊會
+                            校園點餐系統
                         </h1>
                         <div className="flex flex-wrap items-center gap-3 sm:gap-4">
                             <span className="text-orange-300 flex items-center gap-1.5 text-sm sm:text-base">
@@ -445,7 +445,7 @@ export function CustomerApp() {
                     </p>
                     <div className="flex justify-center gap-4 text-xs">
                         <a
-                            href="./privacy.html"
+                            href={`${import.meta.env.BASE_URL}privacy.html`}
                             className="text-orange-400 hover:text-orange-300 underline"
                             target="_blank"
                             rel="noopener noreferrer"
@@ -454,7 +454,7 @@ export function CustomerApp() {
                         </a>
                         <span className="text-gray-600">|</span>
                         <a
-                            href="./terms.html"
+                            href={`${import.meta.env.BASE_URL}terms.html`}
                             className="text-orange-400 hover:text-orange-300 underline"
                             target="_blank"
                             rel="noopener noreferrer"

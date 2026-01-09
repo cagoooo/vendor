@@ -48,20 +48,47 @@ export function ClassSelectorPage() {
 
     if (error || kitchens.length === 0) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex flex-col items-center justify-center text-white p-8">
-                <div className="text-center max-w-md">
-                    <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gray-800 flex items-center justify-center border-2 border-gray-700">
-                        <Store className="w-12 h-12 text-gray-500" />
+            <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex flex-col text-white">
+                {/* 主內容 */}
+                <div className="flex-1 flex flex-col items-center justify-center p-8">
+                    <div className="text-center max-w-md">
+                        {/* 應用程式名稱 - 符合 OAuth 要求 */}
+                        <h1 className="text-2xl font-black text-orange-500 mb-8">🍽️ 校園點餐系統</h1>
+
+                        <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gray-800 flex items-center justify-center border-2 border-gray-700">
+                            <Store className="w-12 h-12 text-gray-500" />
+                        </div>
+                        <h2 className="text-3xl font-black mb-3">{error ? '載入失敗' : '尚無攤位開放'}</h2>
+                        <p className="text-gray-400 mb-8">{error || '目前沒有班級開放點餐，請稍後再來！'}</p>
+                        <button
+                            onClick={loadKitchens}
+                            className="px-8 py-3 bg-gradient-to-r from-orange-500 to-red-500 rounded-full font-bold text-lg shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all hover:scale-105"
+                        >
+                            重新整理
+                        </button>
                     </div>
-                    <h2 className="text-3xl font-black mb-3">{error ? '載入失敗' : '尚無攤位開放'}</h2>
-                    <p className="text-gray-400 mb-8">{error || '目前沒有班級開放點餐，請稍後再來！'}</p>
-                    <button
-                        onClick={loadKitchens}
-                        className="px-8 py-3 bg-gradient-to-r from-orange-500 to-red-500 rounded-full font-bold text-lg shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all hover:scale-105"
-                    >
-                        重新整理
-                    </button>
                 </div>
+
+                {/* 頁尾 - 符合 OAuth 隱私權政策要求 */}
+                <footer className="bg-gray-950 text-gray-400 py-6 border-t border-gray-800">
+                    <div className="max-w-4xl mx-auto px-4 text-center">
+                        <p className="text-sm mb-3">
+                            校園點餐系統是專為校慶園遊會設計的線上點餐平台，提供即時叫號、快速取餐等服務。
+                        </p>
+                        <div className="flex justify-center gap-4 text-xs">
+                            <a href={`${import.meta.env.BASE_URL}privacy.html`} className="text-orange-400 hover:text-orange-300 underline" target="_blank" rel="noopener noreferrer">
+                                🔒 隱私權政策
+                            </a>
+                            <span className="text-gray-600">|</span>
+                            <a href={`${import.meta.env.BASE_URL}terms.html`} className="text-orange-400 hover:text-orange-300 underline" target="_blank" rel="noopener noreferrer">
+                                📋 服務條款
+                            </a>
+                        </div>
+                        <p className="text-xs text-gray-600 mt-3">
+                            © 2026 校園點餐系統. All rights reserved.
+                        </p>
+                    </div>
+                </footer>
             </div>
         );
     }
@@ -80,7 +107,7 @@ export function ClassSelectorPage() {
                     <div className="max-w-4xl mx-auto text-center">
                         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white mb-3">
                             <span className="text-4xl sm:text-5xl mr-3">🎈</span>
-                            校慶園遊會
+                            校園點餐系統
                         </h1>
                         <p className="text-white/80 text-sm sm:text-base">
                             選擇您想點餐的攤位
@@ -107,8 +134,8 @@ export function ClassSelectorPage() {
                         >
                             {/* 狀態標籤 */}
                             <div className={`absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-bold ${kitchen.isOpen
-                                    ? 'bg-green-100 text-green-700'
-                                    : 'bg-gray-100 text-gray-500'
+                                ? 'bg-green-100 text-green-700'
+                                : 'bg-gray-100 text-gray-500'
                                 }`}>
                                 {kitchen.isOpen ? '營業中' : '休息中'}
                             </div>
@@ -177,11 +204,11 @@ export function ClassSelectorPage() {
                         校園點餐系統是專為校慶園遊會設計的線上點餐平台，提供即時叫號、快速取餐等服務。
                     </p>
                     <div className="flex justify-center gap-4 text-xs">
-                        <a href="./privacy.html" className="text-orange-400 hover:text-orange-300 underline" target="_blank" rel="noopener noreferrer">
+                        <a href={`${import.meta.env.BASE_URL}privacy.html`} className="text-orange-400 hover:text-orange-300 underline" target="_blank" rel="noopener noreferrer">
                             🔒 隱私權政策
                         </a>
                         <span className="text-gray-600">|</span>
-                        <a href="./terms.html" className="text-orange-400 hover:text-orange-300 underline" target="_blank" rel="noopener noreferrer">
+                        <a href={`${import.meta.env.BASE_URL}terms.html`} className="text-orange-400 hover:text-orange-300 underline" target="_blank" rel="noopener noreferrer">
                             📋 服務條款
                         </a>
                     </div>
