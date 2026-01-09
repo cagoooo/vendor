@@ -21,7 +21,7 @@ import {
 } from 'firebase/firestore';
 import type { DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
 import { db } from './firebase';
-import type { MenuItem, Order, OrderItem, SystemConfig, ApiResponse } from '../types';
+import type { MenuItem, Order, SystemConfig, ApiResponse } from '../types';
 
 // ============ 取得 Collection 路徑 ============
 
@@ -163,8 +163,36 @@ export async function placeClassOrder(
             updatedAt: Timestamp.now()
         });
 
-        // 注意：銷售統計在 updateClassOrderStatus 的 Paid 階段更新，
-        // 這樣取消的訂單不會計入統計
+        // 更新每日銷售統計（下單即計入統計）
+        const today = new Date().toISOString().slice(0, 10);
+        const dailySalesRef = doc(db, getDailySalesPath(classId), today);
+        const dailySalesSnap = await getDoc(dailySalesRef);
+
+        if (!dailySalesSnap.exists()) {
+            const initialItemSales: Record<string, number> = {};
+            for (const item of items) {
+                initialItemSales[item.name] = item.quantity;
+            }
+            batch.set(dailySalesRef, {
+                revenue: totalPrice,
+                orderCount: 1,
+                itemSales: initialItemSales,
+                date: today,
+                updatedAt: Timestamp.now()
+            });
+        } else {
+            // 使用 update 來增量更新
+            const itemUpdates: Record<string, unknown> = {};
+            for (const item of items) {
+                itemUpdates[`itemSales.${item.name}`] = increment(item.quantity);
+            }
+            batch.update(dailySalesRef, {
+                revenue: increment(totalPrice),
+                orderCount: increment(1),
+                ...itemUpdates,
+                updatedAt: Timestamp.now()
+            });
+        }
 
         await batch.commit();
         return { status: 'success', orderId };
@@ -244,28 +272,7 @@ export async function updateClassOrderStatus(classId: string, orderId: string, s
             updateData.completedAt = Timestamp.now();
         } else if (status === 'Paid') {
             updateData.paidAt = Timestamp.now();
-
-            const orderDocSnap = await getDoc(doc(db, getOrdersPath(classId), orderId));
-            if (orderDocSnap.exists()) {
-                const orderData = orderDocSnap.data();
-                const today = new Date().toISOString().slice(0, 10);
-                const salesRef = doc(db, getDailySalesPath(classId), today);
-
-                const batch = writeBatch(db);
-                const itemUpdates: Record<string, unknown> = {};
-                orderData.items.forEach((item: OrderItem) => {
-                    itemUpdates[`itemSales.${item.name}`] = increment(item.quantity);
-                });
-
-                batch.set(salesRef, {
-                    date: today,
-                    revenue: increment(orderData.totalPrice),
-                    orderCount: increment(1),
-                    ...itemUpdates
-                }, { merge: true });
-
-                await batch.commit();
-            }
+            // 銷售統計已在下單時更新，這裡不需要再更新
         }
 
         await updateDoc(doc(db, getOrdersPath(classId), orderId), updateData);
