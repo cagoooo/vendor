@@ -49,21 +49,20 @@
   </script>
 
   <div id="root">
-    <!-- 靜態內容給 Google 爬蟲和 noscript 使用者 -->
-    <noscript>
-      <div
-        style="font-family: sans-serif; padding: 40px; text-align: center; background: #1a1a2e; color: white; min-height: 100vh;">
-        <h1 style="color: #f97316; font-size: 2rem;">🍽️ 校園點餐系統</h1>
-        <p style="color: #a1a1aa; margin: 20px 0;">專為校慶園遊會設計的線上點餐平台，提供即時叫號、快速取餐等服務。</p>
-        <p style="color: #71717a; font-size: 0.875rem;">請啟用 JavaScript 以使用本系統。</p>
-        <p style="margin-top: 40px;">
-          <a href="./privacy.html" style="color: #f97316;">🔒 隱私權政策</a>
-          &nbsp;|&nbsp;
-          <a href="./terms.html" style="color: #f97316;">📋 服務條款</a>
-        </p>
-        <p style="color: #52525b; font-size: 0.75rem; margin-top: 20px;">© 2026 校園點餐系統. All rights reserved.</p>
-      </div>
-    </noscript>
+    <!-- 靜態內容給 Google 爬蟲 (React 載入後會被覆蓋) -->
+    <div id="static-content" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 40px; text-align: center; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: white; min-height: 100vh;">
+      <h1 style="color: #f97316; font-size: 2.5rem; margin-bottom: 1rem;">🍽️ 校園點餐系統</h1>
+      <p style="color: #a1a1aa; margin: 20px auto; max-width: 500px; line-height: 1.6;">
+        校園點餐系統是專為校慶園遊會設計的線上點餐平台，提供即時叫號、快速取餐等服務，讓您輕鬆享用美食。
+      </p>
+      <p style="color: #71717a; font-size: 0.875rem; margin-top: 30px;">載入中...</p>
+      <footer style="position: fixed; bottom: 0; left: 0; right: 0; padding: 20px; background: rgba(0,0,0,0.3); text-align: center;">
+        <a href="./privacy.html" style="color: #f97316; text-decoration: underline; margin: 0 10px;">🔒 隱私權政策</a>
+        <span style="color: #52525b;">|</span>
+        <a href="./terms.html" style="color: #f97316; text-decoration: underline; margin: 0 10px;">📋 服務條款</a>
+        <p style="color: #52525b; font-size: 0.75rem; margin-top: 10px;">© 2026 校園點餐系統. All rights reserved.</p>
+      </footer>
+    </div>
   </div>
   <script type="module" src="/src/main.tsx"></script>
 
