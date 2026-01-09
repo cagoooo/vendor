@@ -3,13 +3,13 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     tailwindcss(),
   ],
-  // GitHub Pages 部署路徑
-  base: process.env.GITHUB_ACTIONS ? '/vendor/' : '/',
+  // 本機開發用 /，生產環境部署到 GitHub Pages /vendor/
+  base: mode === 'development' ? '/' : '/vendor/',
   server: {
     port: 3000,
     open: true,
@@ -18,4 +18,4 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: true,
   },
-})
+}))
