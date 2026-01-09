@@ -10,11 +10,18 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="點餐" />
+  <meta name="apple-mobile-web-app-title" content="校園點餐系統" />
 
-  <!-- SEO -->
-  <meta name="description" content="校慶園遊會線上點餐系統 - 即時叫號、快速取餐" />
-  <meta name="keywords" content="點餐,校園,園遊會,線上訂餐" />
+  <!-- SEO & Google OAuth 驗證 -->
+  <meta name="description" content="校園點餐系統 - 專為校慶園遊會設計的線上點餐平台，提供即時叫號、快速取餐等服務。" />
+  <meta name="keywords" content="校園點餐系統,點餐,校園,園遊會,線上訂餐" />
+  <meta name="application-name" content="校園點餐系統" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="校園點餐系統" />
+  <meta property="og:description" content="專為校慶園遊會設計的線上點餐平台，提供即時叫號、快速取餐等服務。" />
+  <meta property="og:site_name" content="校園點餐系統" />
 
   <!-- Icons -->
   <link rel="icon" type="image/png" href="./icons/icon-512.png" />
@@ -40,7 +47,24 @@
       }
     }(window.location))
   </script>
-  <div id="root"></div>
+
+  <div id="root">
+    <!-- 靜態內容給 Google 爬蟲和 noscript 使用者 -->
+    <noscript>
+      <div
+        style="font-family: sans-serif; padding: 40px; text-align: center; background: #1a1a2e; color: white; min-height: 100vh;">
+        <h1 style="color: #f97316; font-size: 2rem;">🍽️ 校園點餐系統</h1>
+        <p style="color: #a1a1aa; margin: 20px 0;">專為校慶園遊會設計的線上點餐平台，提供即時叫號、快速取餐等服務。</p>
+        <p style="color: #71717a; font-size: 0.875rem;">請啟用 JavaScript 以使用本系統。</p>
+        <p style="margin-top: 40px;">
+          <a href="./privacy.html" style="color: #f97316;">🔒 隱私權政策</a>
+          &nbsp;|&nbsp;
+          <a href="./terms.html" style="color: #f97316;">📋 服務條款</a>
+        </p>
+        <p style="color: #52525b; font-size: 0.75rem; margin-top: 20px;">© 2026 校園點餐系統. All rights reserved.</p>
+      </div>
+    </noscript>
+  </div>
   <script type="module" src="/src/main.tsx"></script>
 
   <!-- Service Worker Registration -->
