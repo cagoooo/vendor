@@ -31,16 +31,37 @@ export function ShareModal({ shareUrl, title = '校園點餐系統', onClose }: 
         }
     };
 
-    // 分享到 LINE
+    // 分享到 LINE - 包含連結在訊息中
     const shareToLine = () => {
-        const lineUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(title)}`;
+        const message = `🍽️ ${title}\n\n📱 點餐連結：${shareUrl}`;
+        const lineUrl = `https://line.me/R/share?text=${encodeURIComponent(message)}`;
         window.open(lineUrl, '_blank', 'width=600,height=600');
     };
 
-    // 分享到 Facebook
-    const shareToFacebook = () => {
-        const fbUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(title)}`;
+    // 分享到 Facebook - 先複製內容再開啟分享
+    const shareToFacebook = async () => {
+        const message = `🍽️ ${title}\n\n👉 點餐連結：${shareUrl}`;
+
+        // 先複製到剪貼簿
+        try {
+            await navigator.clipboard.writeText(message);
+        } catch {
+            // Fallback
+            const input = document.createElement('textarea');
+            input.value = message;
+            document.body.appendChild(input);
+            input.select();
+            document.execCommand('copy');
+            document.body.removeChild(input);
+        }
+
+        // 開啟 Facebook 分享對話框
+        const fbUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
         window.open(fbUrl, '_blank', 'width=600,height=600');
+
+        // 顯示提示
+        setCopied(true);
+        setTimeout(() => setCopied(false), 3000);
     };
 
     // 使用 Web Share API（如果可用）
@@ -167,8 +188,8 @@ export function ShareModal({ shareUrl, title = '校園點餐系統', onClose }: 
                             <button
                                 onClick={handleCopyLink}
                                 className={`flex items-center justify-center gap-2 p-4 rounded-2xl transition active:scale-95 ${copied
-                                        ? 'bg-green-500 text-white'
-                                        : 'bg-gray-800 hover:bg-gray-700 text-white'
+                                    ? 'bg-green-500 text-white'
+                                    : 'bg-gray-800 hover:bg-gray-700 text-white'
                                     }`}
                             >
                                 {copied ? <Check className="w-6 h-6" /> : <Link2 className="w-6 h-6" />}
