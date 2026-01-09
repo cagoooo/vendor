@@ -1,3 +1,8 @@
+/**
+ * 班級廚房專用 API
+ * 所有的資料操作都會基於 classId 進行隔離
+ */
+
 import {
     collection,
     doc,
@@ -5,6 +10,7 @@ import {
     getDoc,
     addDoc,
     updateDoc,
+    setDoc,
     query,
     where,
     orderBy,
@@ -17,12 +23,34 @@ import type { DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
 import { db } from './firebase';
 import type { MenuItem, Order, OrderItem, SystemConfig, ApiResponse } from '../types';
 
+// ============ 取得 Collection 路徑 ============
+
+function getMenuItemsPath(classId: string) {
+    return `kitchens/${classId}/menuItems`;
+}
+
+function getOrdersPath(classId: string) {
+    return `kitchens/${classId}/orders`;
+}
+
+function getDailySalesPath(classId: string) {
+    return `kitchens/${classId}/dailySales`;
+}
+
+function getOrderCountsPath(classId: string) {
+    return `kitchens/${classId}/orderCounts`;
+}
+
+function getSystemConfigPath(classId: string) {
+    return `kitchens/${classId}/system/config`;
+}
+
 // ============ 菜單 API ============
 
-export async function getMenu(): Promise<ApiResponse<MenuItem[]>> {
+export async function getClassMenu(classId: string): Promise<ApiResponse<MenuItem[]>> {
     try {
         const menuQuery = query(
-            collection(db, 'menuItems'),
+            collection(db, getMenuItemsPath(classId)),
             where('isActive', '==', true),
             orderBy('name')
         );
@@ -32,7 +60,7 @@ export async function getMenu(): Promise<ApiResponse<MenuItem[]>> {
             ...docSnap.data()
         } as MenuItem));
 
-        const configDoc = await getDoc(doc(db, 'system', 'config'));
+        const configDoc = await getDoc(doc(db, getSystemConfigPath(classId)));
         const config = configDoc.exists()
             ? configDoc.data() as SystemConfig
             : { isOpen: true, waitTime: 15 };
@@ -43,15 +71,15 @@ export async function getMenu(): Promise<ApiResponse<MenuItem[]>> {
             system: config
         };
     } catch (error) {
-        console.error('getMenu error:', error);
+        console.error('getClassMenu error:', error);
         return { status: 'error', message: 'Failed to get menu' };
     }
 }
 
-export async function getTrending(): Promise<ApiResponse<string[]>> {
+export async function getClassTrending(classId: string): Promise<ApiResponse<string[]>> {
     try {
         const today = new Date().toISOString().slice(0, 10);
-        const salesDoc = await getDoc(doc(db, 'dailySales', today));
+        const salesDoc = await getDoc(doc(db, getDailySalesPath(classId), today));
 
         if (!salesDoc.exists()) {
             return { status: 'success', data: [] };
@@ -65,19 +93,19 @@ export async function getTrending(): Promise<ApiResponse<string[]>> {
 
         return { status: 'success', data: sorted };
     } catch (error) {
-        console.error('getTrending error:', error);
+        console.error('getClassTrending error:', error);
         return { status: 'error', message: 'Failed to get trending' };
     }
 }
 
 // ============ 訂單 API ============
 
-async function generateOrderId(): Promise<string> {
+async function generateClassOrderId(classId: string): Promise<string> {
     const now = new Date();
     const hhmm = now.toTimeString().slice(0, 5).replace(':', '');
     const today = now.toISOString().slice(0, 10);
 
-    const countDocRef = doc(db, 'orderCounts', today);
+    const countDocRef = doc(db, getOrderCountsPath(classId), today);
     const countDocSnap = await getDoc(countDocRef);
 
     let count = 1;
@@ -85,15 +113,15 @@ async function generateOrderId(): Promise<string> {
         count = (countDocSnap.data()?.count || 0) + 1;
     }
 
-    await updateDoc(countDocRef, { count }).catch(() => {
-        return addDoc(collection(db, 'orderCounts'), { count }).catch(() => { });
-    });
+    // 使用 setDoc 以確保文件存在
+    await setDoc(countDocRef, { count, date: today }, { merge: true });
 
     const orderNum = String(count).padStart(3, '0');
     return `ORD-${hhmm}-${orderNum}`;
 }
 
-export async function placeOrder(
+export async function placeClassOrder(
+    classId: string,
     customerClass: string,
     customerName: string,
     items: { name: string; quantity: number; price: number; menuItemId?: string }[],
@@ -101,25 +129,25 @@ export async function placeOrder(
     note?: string
 ): Promise<ApiResponse> {
     try {
-        const configDoc = await getDoc(doc(db, 'system', 'config'));
+        const configDoc = await getDoc(doc(db, getSystemConfigPath(classId)));
         if (configDoc.exists() && configDoc.data()?.isOpen === false) {
             return { status: 'error', message: '目前暫停接單' };
         }
 
-        const orderId = await generateOrderId();
+        const orderId = await generateClassOrderId(classId);
         const batch = writeBatch(db);
         const today = new Date().toISOString().slice(0, 10);
 
         // 更新庫存
         for (const item of items) {
-            const menuRef = doc(db, 'menuItems', item.menuItemId || item.name);
+            const menuRef = doc(db, getMenuItemsPath(classId), item.menuItemId || item.name);
             batch.update(menuRef, {
                 stock: increment(-item.quantity)
             });
         }
 
         // 建立訂單
-        const orderRef = doc(db, 'orders', orderId);
+        const orderRef = doc(db, getOrdersPath(classId), orderId);
         batch.set(orderRef, {
             id: orderId,
             customerInfo: { class: customerClass, name: customerName },
@@ -136,13 +164,11 @@ export async function placeOrder(
             updatedAt: Timestamp.now()
         });
 
-        // 更新每日銷售統計 - 需用 update 來支援 dot notation 路徑
-        const dailySalesRef = doc(db, 'dailySales', today);
-
-        // 先確保文件存在
+        // 更新每日銷售統計
+        const dailySalesRef = doc(db, getDailySalesPath(classId), today);
         const dailySalesSnap = await getDoc(dailySalesRef);
+
         if (!dailySalesSnap.exists()) {
-            // 初次建立
             const initialItemSales: Record<string, number> = {};
             for (const item of items) {
                 initialItemSales[item.name] = item.quantity;
@@ -155,13 +181,11 @@ export async function placeOrder(
                 updatedAt: Timestamp.now()
             });
         } else {
-            // 更新現有文件 - 使用 update 以支援 field path
             batch.update(dailySalesRef, {
                 revenue: increment(totalPrice),
                 orderCount: increment(1),
                 updatedAt: Timestamp.now()
             });
-            // 分別更新每個商品銷量
             for (const item of items) {
                 batch.update(dailySalesRef, {
                     [`itemSales.${item.name}`]: increment(item.quantity)
@@ -172,15 +196,15 @@ export async function placeOrder(
         await batch.commit();
         return { status: 'success', orderId };
     } catch (error) {
-        console.error('placeOrder error:', error);
+        console.error('placeClassOrder error:', error);
         return { status: 'error', message: 'Failed to place order' };
     }
 }
 
-export async function getOrders(): Promise<ApiResponse<Order[]>> {
+export async function getClassOrders(classId: string): Promise<ApiResponse<Order[]>> {
     try {
         const ordersQuery = query(
-            collection(db, 'orders'),
+            collection(db, getOrdersPath(classId)),
             where('status', 'in', ['Pending', 'Preparing', 'Completed']),
             orderBy('createdAt', 'asc')
         );
@@ -204,14 +228,14 @@ export async function getOrders(): Promise<ApiResponse<Order[]>> {
 
         return { status: 'success', data: orders };
     } catch (error) {
-        console.error('getOrders error:', error);
+        console.error('getClassOrders error:', error);
         return { status: 'error', message: 'Failed to get orders' };
     }
 }
 
-export function subscribeToOrders(callback: (orders: Order[]) => void): () => void {
+export function subscribeToClassOrders(classId: string, callback: (orders: Order[]) => void): () => void {
     const ordersQuery = query(
-        collection(db, 'orders'),
+        collection(db, getOrdersPath(classId)),
         where('status', 'in', ['Pending', 'Preparing', 'Completed']),
         orderBy('createdAt', 'asc')
     );
@@ -236,7 +260,7 @@ export function subscribeToOrders(callback: (orders: Order[]) => void): () => vo
     });
 }
 
-export async function updateOrderStatus(orderId: string, status: string): Promise<ApiResponse> {
+export async function updateClassOrderStatus(classId: string, orderId: string, status: string): Promise<ApiResponse> {
     try {
         const updateData: Record<string, unknown> = {
             status,
@@ -248,11 +272,11 @@ export async function updateOrderStatus(orderId: string, status: string): Promis
         } else if (status === 'Paid') {
             updateData.paidAt = Timestamp.now();
 
-            const orderDocSnap = await getDoc(doc(db, 'orders', orderId));
+            const orderDocSnap = await getDoc(doc(db, getOrdersPath(classId), orderId));
             if (orderDocSnap.exists()) {
                 const orderData = orderDocSnap.data();
                 const today = new Date().toISOString().slice(0, 10);
-                const salesRef = doc(db, 'dailySales', today);
+                const salesRef = doc(db, getDailySalesPath(classId), today);
 
                 const batch = writeBatch(db);
                 const itemUpdates: Record<string, unknown> = {};
@@ -271,17 +295,17 @@ export async function updateOrderStatus(orderId: string, status: string): Promis
             }
         }
 
-        await updateDoc(doc(db, 'orders', orderId), updateData);
+        await updateDoc(doc(db, getOrdersPath(classId), orderId), updateData);
         return { status: 'success' };
     } catch (error) {
-        console.error('updateOrderStatus error:', error);
+        console.error('updateClassOrderStatus error:', error);
         return { status: 'error', message: 'Failed to update status' };
     }
 }
 
-export async function cancelOrder(orderId: string): Promise<ApiResponse> {
+export async function cancelClassOrder(classId: string, orderId: string): Promise<ApiResponse> {
     try {
-        const orderDocSnap = await getDoc(doc(db, 'orders', orderId));
+        const orderDocSnap = await getDoc(doc(db, getOrdersPath(classId), orderId));
         if (!orderDocSnap.exists()) {
             return { status: 'error', message: 'Order not found' };
         }
@@ -290,11 +314,11 @@ export async function cancelOrder(orderId: string): Promise<ApiResponse> {
         const batch = writeBatch(db);
 
         for (const item of orderData.items) {
-            const menuRef = doc(db, 'menuItems', item.menuItemId || item.name);
+            const menuRef = doc(db, getMenuItemsPath(classId), item.menuItemId || item.name);
             batch.update(menuRef, { stock: increment(item.quantity) });
         }
 
-        batch.update(doc(db, 'orders', orderId), {
+        batch.update(doc(db, getOrdersPath(classId), orderId), {
             status: 'Cancelled',
             updatedAt: Timestamp.now()
         });
@@ -302,43 +326,28 @@ export async function cancelOrder(orderId: string): Promise<ApiResponse> {
         await batch.commit();
         return { status: 'success' };
     } catch (error) {
-        console.error('cancelOrder error:', error);
+        console.error('cancelClassOrder error:', error);
         return { status: 'error', message: 'Failed to cancel order' };
-    }
-}
-
-export async function checkOrderStatus(orderIds: string[]): Promise<ApiResponse<Record<string, string>>> {
-    try {
-        const result: Record<string, string> = {};
-        for (const orderId of orderIds) {
-            const orderDocSnap = await getDoc(doc(db, 'orders', orderId));
-            if (orderDocSnap.exists()) {
-                result[orderId] = orderDocSnap.data()?.status || 'Unknown';
-            }
-        }
-        return { status: 'success', data: result };
-    } catch (error) {
-        console.error('checkOrderStatus error:', error);
-        return { status: 'error', message: 'Failed to check status' };
     }
 }
 
 // ============ 庫存 API ============
 
-export async function updateStock(itemId: string, quantity: number): Promise<ApiResponse> {
+export async function updateClassStock(classId: string, itemId: string, quantity: number): Promise<ApiResponse> {
     try {
-        await updateDoc(doc(db, 'menuItems', itemId), {
+        await updateDoc(doc(db, getMenuItemsPath(classId), itemId), {
             stock: quantity,
             updatedAt: Timestamp.now()
         });
         return { status: 'success' };
     } catch (error) {
-        console.error('updateStock error:', error);
+        console.error('updateClassStock error:', error);
         return { status: 'error', message: 'Failed to update stock' };
     }
 }
 
-export async function addMenuItem(
+export async function addClassMenuItem(
+    classId: string,
     name: string,
     price: number,
     stock: number,
@@ -346,7 +355,7 @@ export async function addMenuItem(
     imageUrl?: string
 ): Promise<ApiResponse> {
     try {
-        const docRef = await addDoc(collection(db, 'menuItems'), {
+        const docRef = await addDoc(collection(db, getMenuItemsPath(classId)), {
             name, price, stock, category,
             imageUrl: imageUrl || '',
             isActive: true,
@@ -355,33 +364,34 @@ export async function addMenuItem(
         });
         return { status: 'success', data: { id: docRef.id } };
     } catch (error) {
-        console.error('addMenuItem error:', error);
+        console.error('addClassMenuItem error:', error);
         return { status: 'error', message: 'Failed to add item' };
     }
 }
 
-export async function updateMenuItem(
+export async function updateClassMenuItem(
+    classId: string,
     itemId: string,
     updates: { name?: string; price?: number; stock?: number; category?: string; imageUrl?: string; isActive?: boolean }
 ): Promise<ApiResponse> {
     try {
-        await updateDoc(doc(db, 'menuItems', itemId), {
+        await updateDoc(doc(db, getMenuItemsPath(classId), itemId), {
             ...updates,
             updatedAt: Timestamp.now()
         });
         return { status: 'success' };
     } catch (error) {
-        console.error('updateMenuItem error:', error);
+        console.error('updateClassMenuItem error:', error);
         return { status: 'error', message: 'Failed to update item' };
     }
 }
 
 // ============ 統計 API ============
 
-export async function getStats(): Promise<ApiResponse> {
+export async function getClassStats(classId: string): Promise<ApiResponse> {
     try {
         const today = new Date().toISOString().slice(0, 10);
-        const salesDocSnap = await getDoc(doc(db, 'dailySales', today));
+        const salesDocSnap = await getDoc(doc(db, getDailySalesPath(classId), today));
 
         let revenue = 0;
         let orderCount = 0;
@@ -389,55 +399,41 @@ export async function getStats(): Promise<ApiResponse> {
 
         if (salesDocSnap.exists()) {
             const data = salesDocSnap.data();
-            console.log('dailySales raw data:', JSON.stringify(data, null, 2));
-
             revenue = data.revenue || 0;
             orderCount = data.orderCount || 0;
 
             const itemSales = data.itemSales || {};
-            console.log('itemSales:', itemSales);
-
             ranking = Object.entries(itemSales)
                 .map(([name, qty]) => ({ name, qty: qty as number }))
                 .sort((a, b) => b.qty - a.qty);
-
-            console.log('ranking:', ranking);
-        } else {
-            console.log('No dailySales document found for:', today);
         }
 
         return { status: 'success', data: { revenue, orderCount, ranking } };
     } catch (error) {
-        console.error('getStats error:', error);
+        console.error('getClassStats error:', error);
         return { status: 'error', message: 'Failed to get stats' };
     }
 }
 
 // ============ 系統設定 API ============
 
-export async function setSystemConfig(config: Partial<SystemConfig>): Promise<ApiResponse> {
+export async function setClassSystemConfig(classId: string, config: Partial<SystemConfig>): Promise<ApiResponse> {
     try {
-        await updateDoc(doc(db, 'system', 'config'), {
+        const configRef = doc(db, getSystemConfigPath(classId));
+        await setDoc(configRef, {
             ...config,
             updatedAt: Timestamp.now()
-        }).catch(async () => {
-            const { setDoc } = await import('firebase/firestore');
-            await setDoc(doc(db, 'system', 'config'), {
-                isOpen: config.isOpen ?? true,
-                waitTime: config.waitTime ?? 15,
-                updatedAt: Timestamp.now()
-            });
-        });
+        }, { merge: true });
         return { status: 'success' };
     } catch (error) {
-        console.error('setSystemConfig error:', error);
+        console.error('setClassSystemConfig error:', error);
         return { status: 'error', message: 'Failed to update config' };
     }
 }
 
-export async function clearAllOrders(): Promise<ApiResponse> {
+export async function clearClassOrders(classId: string): Promise<ApiResponse> {
     try {
-        const ordersSnapshot = await getDocs(collection(db, 'orders'));
+        const ordersSnapshot = await getDocs(collection(db, getOrdersPath(classId)));
         const batch = writeBatch(db);
 
         ordersSnapshot.forEach(docSnap => {
@@ -445,13 +441,13 @@ export async function clearAllOrders(): Promise<ApiResponse> {
         });
 
         const today = new Date().toISOString().slice(0, 10);
-        batch.delete(doc(db, 'dailySales', today));
-        batch.delete(doc(db, 'orderCounts', today));
+        batch.delete(doc(db, getDailySalesPath(classId), today));
+        batch.delete(doc(db, getOrderCountsPath(classId), today));
 
         await batch.commit();
         return { status: 'success' };
     } catch (error) {
-        console.error('clearAllOrders error:', error);
+        console.error('clearClassOrders error:', error);
         return { status: 'error', message: 'Failed to clear orders' };
     }
 }

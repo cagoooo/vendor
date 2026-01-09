@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { Loader2, Lock, Mail, ChefHat, AlertCircle } from 'lucide-react';
+import { Loader2, Lock, Mail, ChefHat, Clock, UserPlus } from 'lucide-react';
 
 export function LoginPage() {
-    const { signInWithGoogle, signInWithEmail, loading, error, profile } = useAuth();
+    const { signInWithGoogle, signInWithEmail, loading, error, profile, logout, requestClassAdmin, isPending, refreshProfile } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isEmailLogin, setIsEmailLogin] = useState(false);
@@ -28,22 +28,81 @@ export function LoginPage() {
         }
     };
 
+    const handleRequestAccess = async () => {
+        setIsSubmitting(true);
+        try {
+            await requestClassAdmin();
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    // 待審核狀態
+    if (isPending || (profile && profile.role === 'pending')) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-4">
+                <div className="bg-gray-800 rounded-3xl shadow-2xl p-8 max-w-md w-full text-center border border-gray-700">
+                    <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-yellow-500/20 flex items-center justify-center">
+                        <Clock className="w-10 h-10 text-yellow-400" />
+                    </div>
+                    <h2 className="text-2xl font-black text-white mb-3">等待審核中</h2>
+                    <p className="text-gray-400 mb-2">
+                        帳號 <span className="text-orange-400 font-medium">{profile?.email}</span>
+                    </p>
+                    <p className="text-gray-500 mb-6 text-sm">
+                        您的申請已送出，請等待管理員審核。<br />
+                        審核通過後，您將被指派負責的班級廚房。
+                    </p>
+                    <button
+                        onClick={async () => {
+                            await refreshProfile();
+                        }}
+                        className="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 rounded-xl transition mb-3 flex items-center justify-center gap-2"
+                    >
+                        <Loader2 className="w-5 h-5" />
+                        重新檢查狀態
+                    </button>
+                    <button
+                        onClick={logout}
+                        className="text-gray-500 hover:text-white text-sm transition"
+                    >
+                        使用其他帳號登入
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
     // 已登入但無權限
     if (profile && profile.role === 'none') {
         return (
             <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-4">
                 <div className="bg-gray-800 rounded-3xl shadow-2xl p-8 max-w-md w-full text-center border border-gray-700">
-                    <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-red-500/20 flex items-center justify-center">
-                        <AlertCircle className="w-10 h-10 text-red-400" />
+                    <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-orange-500/20 flex items-center justify-center">
+                        <UserPlus className="w-10 h-10 text-orange-400" />
                     </div>
-                    <h2 className="text-2xl font-black text-white mb-3">權限不足</h2>
+                    <h2 className="text-2xl font-black text-white mb-3">歡迎使用</h2>
                     <p className="text-gray-400 mb-2">
                         帳號 <span className="text-orange-400 font-medium">{profile.email}</span>
                     </p>
                     <p className="text-gray-500 mb-6 text-sm">
                         您尚未被授權進入廚房管理系統。<br />
-                        請聯繫管理員取得權限。
+                        請申請成為班級管理員，待管理員審核通過後即可使用。
                     </p>
+                    <button
+                        onClick={handleRequestAccess}
+                        disabled={isSubmitting}
+                        className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold py-3 rounded-xl transition mb-3 flex items-center justify-center gap-2 shadow-lg shadow-orange-500/30 disabled:opacity-50"
+                    >
+                        {isSubmitting ? (
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                        ) : (
+                            <>
+                                <UserPlus className="w-5 h-5" />
+                                申請成為班級管理員
+                            </>
+                        )}
+                    </button>
                     <button
                         onClick={() => window.location.href = '/'}
                         className="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 rounded-xl transition mb-3"
@@ -51,10 +110,7 @@ export function LoginPage() {
                         返回點餐頁面
                     </button>
                     <button
-                        onClick={() => {
-                            const { logout } = useAuth();
-                            logout();
-                        }}
+                        onClick={logout}
                         className="text-gray-500 hover:text-white text-sm transition"
                     >
                         使用其他帳號登入

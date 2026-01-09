@@ -7,17 +7,23 @@ import {
     GoogleAuthProvider,
     type User
 } from 'firebase/auth';
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../services/firebase';
 
-export type UserRole = 'owner' | 'staff' | 'none';
+export type UserRole = 'owner' | 'classAdmin' | 'staff' | 'pending' | 'none';
+export type UserStatus = 'pending' | 'approved' | 'rejected';
 
 interface UserProfile {
     uid: string;
     email: string;
     name: string;
     role: UserRole;
+    classId?: string;        // 班級 ID (例如: 'class-3-2')
+    className?: string;      // 班級名稱 (例如: '3年2班')
+    status?: UserStatus;     // 審核狀態
     photoURL?: string;
+    approvedAt?: Date;
+    approvedBy?: string;
 }
 
 interface AuthContextType {
@@ -28,9 +34,14 @@ interface AuthContextType {
     signInWithGoogle: () => Promise<void>;
     signInWithEmail: (email: string, password: string) => Promise<void>;
     logout: () => Promise<void>;
+    requestClassAdmin: () => Promise<void>;
+    refreshProfile: () => Promise<void>;
     isOwner: boolean;
     isStaff: boolean;
+    isClassAdmin: boolean;
+    isPending: boolean;
     isAuthenticated: boolean;
+    currentClassId: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -57,7 +68,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                         email: firebaseUser.email || '',
                         name: data.name || firebaseUser.displayName || '',
                         role: data.role || 'none',
+                        classId: data.classId || undefined,
+                        className: data.className || undefined,
+                        status: data.status || undefined,
                         photoURL: data.photoURL || firebaseUser.photoURL || undefined,
+                        approvedAt: data.approvedAt?.toDate() || undefined,
+                        approvedBy: data.approvedBy || undefined,
                     });
                 } else {
                     // 新用戶，建立資料 (預設無權限)
@@ -118,7 +134,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const isOwner = profile?.role === 'owner';
     const isStaff = profile?.role === 'staff' || profile?.role === 'owner';
-    const isAuthenticated = !!user && !!profile && profile.role !== 'none';
+    const isClassAdmin = profile?.role === 'classAdmin';
+    const isPending = profile?.role === 'pending';
+    const isAuthenticated = !!user && !!profile && (profile.role === 'owner' || profile.role === 'staff' || profile.role === 'classAdmin');
+    const currentClassId = profile?.classId || null;
+
+    // 申請成為班級管理員
+    const requestClassAdmin = async () => {
+        if (!user) return;
+        try {
+            await updateDoc(doc(db, 'users', user.uid), {
+                role: 'pending',
+                status: 'pending',
+                updatedAt: serverTimestamp(),
+            });
+            setProfile(prev => prev ? { ...prev, role: 'pending', status: 'pending' } : null);
+        } catch (err) {
+            setError((err as Error).message);
+        }
+    };
+
+    // 刷新用戶資料
+    const refreshProfile = async () => {
+        if (!user) return;
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        if (userDoc.exists()) {
+            const data = userDoc.data();
+            setProfile({
+                uid: user.uid,
+                email: user.email || '',
+                name: data.name || user.displayName || '',
+                role: data.role || 'none',
+                classId: data.classId || undefined,
+                className: data.className || undefined,
+                status: data.status || undefined,
+                photoURL: data.photoURL || user.photoURL || undefined,
+                approvedAt: data.approvedAt?.toDate() || undefined,
+                approvedBy: data.approvedBy || undefined,
+            });
+        }
+    };
 
     return (
         <AuthContext.Provider value={{
@@ -129,9 +184,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             signInWithGoogle,
             signInWithEmail,
             logout,
+            requestClassAdmin,
+            refreshProfile,
             isOwner,
             isStaff,
+            isClassAdmin,
+            isPending,
             isAuthenticated,
+            currentClassId,
         }}>
             {children}
         </AuthContext.Provider>

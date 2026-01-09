@@ -1,20 +1,21 @@
 import { useState, useEffect, useRef } from 'react';
-import { useOrders } from '../../hooks/useOrders';
+import { useClassOrders } from '../../hooks/useClassOrders';
 import { useAuth } from '../../contexts/AuthContext';
 import {
-    updateOrderStatus,
-    cancelOrder,
-    getMenu,
-    updateStock,
-    addMenuItem,
-    getStats,
-    setSystemConfig,
-    clearAllOrders
-} from '../../services/api';
+    updateClassOrderStatus,
+    cancelClassOrder,
+    getClassMenu,
+    updateClassStock,
+    addClassMenuItem,
+    getClassStats,
+    setClassSystemConfig,
+    clearClassOrders
+} from '../../services/classApi';
+import { OwnerDashboard } from '../../components/OwnerDashboard';
 import {
     Flame, RefreshCw, Settings, Trash2,
     ChefHat, Package, PieChart, Clock, Plus, Minus,
-    DollarSign, ShoppingBag, TrendingUp, LogOut
+    DollarSign, ShoppingBag, TrendingUp, LogOut, LayoutDashboard
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { Bar, Doughnut } from 'react-chartjs-2';
@@ -22,10 +23,10 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearSca
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
-type Tab = 'orders' | 'inventory' | 'stats';
+type Tab = 'orders' | 'inventory' | 'stats' | 'dashboard';
 
 export function KitchenApp() {
-    const { profile, logout, isOwner } = useAuth();
+    const { profile, logout, isOwner, currentClassId } = useAuth();
     const [activeTab, setActiveTab] = useState<Tab>('orders');
     const [isShopOpen, setIsShopOpen] = useState(true);
     const [waitTime, setWaitTime] = useState(15);
@@ -35,7 +36,8 @@ export function KitchenApp() {
     const audioRef = useRef<HTMLAudioElement>(null);
     const lastPendingCount = useRef(0);
 
-    const { orders, pendingCount, refetch } = useOrders(true);
+    // 使用班級訂單 Hook
+    const { orders, pendingCount, refetch } = useClassOrders(currentClassId, true);
 
     // 過濾掉本地已完成的訂單
     const filteredOrders = orders.filter(o => !localCompletedSet.has(o.id));
@@ -60,13 +62,15 @@ export function KitchenApp() {
 
     // 載入系統設定
     useEffect(() => {
+        if (!currentClassId) return;
         loadSystemConfig();
         if (activeTab === 'inventory') loadInventory();
         if (activeTab === 'stats') loadStats();
-    }, [activeTab]);
+    }, [activeTab, currentClassId]);
 
     const loadSystemConfig = async () => {
-        const result = await getMenu();
+        if (!currentClassId) return;
+        const result = await getClassMenu(currentClassId);
         if (result.status === 'success' && result.system) {
             setIsShopOpen(result.system.isOpen);
             setWaitTime(result.system.waitTime);
@@ -74,14 +78,16 @@ export function KitchenApp() {
     };
 
     const loadInventory = async () => {
-        const result = await getMenu();
+        if (!currentClassId) return;
+        const result = await getClassMenu(currentClassId);
         if (result.status === 'success') {
             setMenuItems(result.data || []);
         }
     };
 
     const loadStats = async () => {
-        const result = await getStats();
+        if (!currentClassId) return;
+        const result = await getClassStats(currentClassId);
         if (result.status === 'success') {
             setStats(result.data);
         }
@@ -108,7 +114,7 @@ export function KitchenApp() {
             setLocalCompletedSet(prev => new Set(prev).add(orderId));
         }
 
-        await updateOrderStatus(orderId, newStatus);
+        await updateClassOrderStatus(currentClassId!, orderId, newStatus);
         if (newStatus !== 'Paid') refetch();
     };
 
@@ -124,22 +130,25 @@ export function KitchenApp() {
         });
         if (result.isConfirmed) {
             setLocalCompletedSet(prev => new Set(prev).add(orderId));
-            await cancelOrder(orderId);
+            await cancelClassOrder(currentClassId!, orderId);
         }
     };
 
     const handleToggleShop = async () => {
+        if (!currentClassId) return;
         const newStatus = !isShopOpen;
         setIsShopOpen(newStatus);
-        await setSystemConfig({ isOpen: newStatus });
+        await setClassSystemConfig(currentClassId, { isOpen: newStatus });
     };
 
     const handleWaitTimeChange = async (value: number) => {
+        if (!currentClassId) return;
         setWaitTime(value);
-        await setSystemConfig({ waitTime: value });
+        await setClassSystemConfig(currentClassId, { waitTime: value });
     };
 
     const handleClearAll = async () => {
+        if (!currentClassId) return;
         const result = await Swal.fire({
             title: '確定清除？',
             icon: 'warning',
@@ -149,7 +158,7 @@ export function KitchenApp() {
             color: '#fff',
         });
         if (result.isConfirmed) {
-            await clearAllOrders();
+            await clearClassOrders(currentClassId);
             setLocalCompletedSet(new Set());
             refetch();
             loadStats();
@@ -199,6 +208,16 @@ export function KitchenApp() {
 
                     {/* Tabs */}
                     <div className="flex bg-gray-700 rounded-lg p-1 gap-1">
+                        {isOwner && (
+                            <button
+                                onClick={() => setActiveTab('dashboard')}
+                                className={`px-4 py-2 rounded-md font-bold text-sm flex items-center gap-2 transition ${activeTab === 'dashboard' ? 'bg-gradient-to-r from-purple-600 to-pink-500 text-white shadow-lg' : 'text-gray-400 hover:text-white'
+                                    }`}
+                            >
+                                <LayoutDashboard className="w-4 h-4" />
+                                總覽
+                            </button>
+                        )}
                         <button
                             onClick={() => setActiveTab('orders')}
                             className={`px-4 py-2 rounded-md font-bold text-sm flex items-center gap-2 transition ${activeTab === 'orders' ? 'bg-orange-600 text-white shadow-lg' : 'text-gray-400 hover:text-white'
@@ -238,6 +257,11 @@ export function KitchenApp() {
                                     </div>
                                 )}
                                 <span className="text-sm text-gray-300">{profile.name || profile.email}</span>
+                                {profile.className && (
+                                    <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-blue-600 text-white">
+                                        {profile.className}
+                                    </span>
+                                )}
                                 <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${isOwner ? 'bg-orange-500 text-white' : 'bg-gray-600 text-gray-300'
                                     }`}>
                                     {isOwner ? '店長' : '員工'}
@@ -245,7 +269,18 @@ export function KitchenApp() {
                             </div>
                         )}
 
-                        {/* Settings Button */}
+                        {/* Admin Link (owner only) - 紫色漸層帶文字 */}
+                        {isOwner && (
+                            <a
+                                href="/admin"
+                                className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white px-3 py-2 rounded-lg transition flex items-center gap-2 font-bold text-sm shadow-lg shadow-purple-500/20"
+                            >
+                                <Settings className="w-4 h-4" />
+                                <span className="hidden sm:inline">管理中心</span>
+                            </a>
+                        )}
+
+                        {/* Settings Button - 灰色齒輪 */}
                         <button
                             onClick={() => {
                                 Swal.fire({
@@ -276,15 +311,16 @@ export function KitchenApp() {
                                     },
                                 });
                             }}
-                            className="bg-gray-700 hover:bg-gray-600 text-gray-400 hover:text-red-400 p-2.5 rounded-lg transition"
+                            className="text-gray-400 hover:text-white p-2 transition"
+                            title="設定"
                         >
                             <Settings className="w-5 h-5" />
                         </button>
 
-                        {/* Logout Button */}
+                        {/* Logout Button - 紅色文字連結 */}
                         <button
                             onClick={logout}
-                            className="bg-gray-700 hover:bg-red-600 text-gray-400 hover:text-white p-2.5 rounded-lg transition"
+                            className="text-gray-400 hover:text-red-400 p-2 transition flex items-center gap-1"
                             title="登出"
                         >
                             <LogOut className="w-5 h-5" />
@@ -434,8 +470,8 @@ export function KitchenApp() {
                                                 stock: (document.getElementById('s-s') as HTMLInputElement).value,
                                             }),
                                         });
-                                        if (value?.name && value?.price) {
-                                            await addMenuItem(value.name, parseInt(value.price), parseInt(value.stock) || 0);
+                                        if (value?.name && value?.price && currentClassId) {
+                                            await addClassMenuItem(currentClassId, value.name, parseInt(value.price), parseInt(value.stock) || 0);
                                             loadInventory();
                                         }
                                     }}
@@ -474,8 +510,9 @@ export function KitchenApp() {
                                                     type="number"
                                                     value={item.stock}
                                                     onChange={async e => {
+                                                        if (!currentClassId) return;
                                                         const newQty = parseInt(e.target.value) || 0;
-                                                        await updateStock(item.id, newQty);
+                                                        await updateClassStock(currentClassId, item.id, newQty);
                                                         loadInventory();
                                                     }}
                                                     className={`bg-transparent border-b-2 border-gray-600 text-center w-16 font-bold text-lg focus:outline-none focus:border-orange-500 ${item.stock <= 5 ? 'text-red-500' : 'text-green-400'
@@ -486,7 +523,8 @@ export function KitchenApp() {
                                                 <div className="flex justify-center gap-2">
                                                     <button
                                                         onClick={async () => {
-                                                            await updateStock(item.id, Math.max(0, item.stock - 1));
+                                                            if (!currentClassId) return;
+                                                            await updateClassStock(currentClassId, item.id, Math.max(0, item.stock - 1));
                                                             loadInventory();
                                                         }}
                                                         className="bg-gray-700 hover:bg-gray-600 text-white w-10 h-10 rounded-full flex items-center justify-center shadow"
@@ -495,7 +533,8 @@ export function KitchenApp() {
                                                     </button>
                                                     <button
                                                         onClick={async () => {
-                                                            await updateStock(item.id, item.stock + 1);
+                                                            if (!currentClassId) return;
+                                                            await updateClassStock(currentClassId, item.id, item.stock + 1);
                                                             loadInventory();
                                                         }}
                                                         className="bg-gray-700 hover:bg-gray-600 text-white w-10 h-10 rounded-full flex items-center justify-center shadow"
@@ -504,7 +543,8 @@ export function KitchenApp() {
                                                     </button>
                                                     <button
                                                         onClick={async () => {
-                                                            await updateStock(item.id, item.stock + 10);
+                                                            if (!currentClassId) return;
+                                                            await updateClassStock(currentClassId, item.id, item.stock + 10);
                                                             loadInventory();
                                                         }}
                                                         className="bg-gray-700 hover:bg-gray-600 text-white w-10 h-10 rounded-full flex items-center justify-center shadow text-xs"
@@ -518,6 +558,13 @@ export function KitchenApp() {
                                 </tbody>
                             </table>
                         </div>
+                    </div>
+                )}
+
+                {/* Owner Dashboard Tab */}
+                {activeTab === 'dashboard' && isOwner && (
+                    <div className="max-w-7xl mx-auto">
+                        <OwnerDashboard />
                     </div>
                 )}
 
