@@ -8,6 +8,7 @@ import {
     getClassMenu,
     updateClassStock,
     addClassMenuItem,
+    updateClassMenuItem,
     getClassStats,
     setClassSystemConfig,
     clearClassOrders,
@@ -695,6 +696,7 @@ export function KitchenApp() {
                                     <tr>
                                         <th className="px-3 py-3 w-16">圖片</th>
                                         <th className="px-4 py-3">品項 (價格)</th>
+                                        <th className="px-2 py-3 text-center">分類</th>
                                         <th className="px-2 py-3 text-center">目前庫存</th>
                                         <th className="px-4 py-3 text-center">快速調整</th>
                                     </tr>
@@ -778,6 +780,39 @@ export function KitchenApp() {
                                             <td className="px-4 py-3 font-bold text-gray-200">
                                                 <span>{item.name}</span>
                                                 <span className="text-xs text-gray-500 ml-2">(${item.price})</span>
+                                            </td>
+                                            {/* 分類欄 - 點擊可修改 */}
+                                            <td className="px-2 py-3 text-center">
+                                                <button
+                                                    onClick={async () => {
+                                                        const categoryOptions = categories.map(c =>
+                                                            `<option value="${c.id}" ${item.category === c.id ? 'selected' : ''}>${c.icon} ${c.name}</option>`
+                                                        ).join('');
+
+                                                        const { value } = await Swal.fire({
+                                                            title: '選擇分類',
+                                                            html: `<select id="cat-select" class="swal2-input">${categoryOptions}</select>`,
+                                                            showCancelButton: true,
+                                                            confirmButtonText: '確認',
+                                                            cancelButtonText: '取消',
+                                                            background: '#1f2937',
+                                                            color: '#fff',
+                                                            preConfirm: () => (document.getElementById('cat-select') as HTMLSelectElement).value
+                                                        });
+
+                                                        if (value && currentClassId && value !== item.category) {
+                                                            await updateClassMenuItem(currentClassId, item.id, { category: value });
+                                                            loadInventory();
+                                                        }
+                                                    }}
+                                                    className="inline-flex items-center gap-1 px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded-lg text-xs transition"
+                                                    title="點擊更改分類"
+                                                >
+                                                    {categories.find(c => c.id === item.category)?.icon || '📦'}
+                                                    <span className="text-gray-300">
+                                                        {categories.find(c => c.id === item.category)?.name || item.category}
+                                                    </span>
+                                                </button>
                                             </td>
                                             <td className="px-2 py-3 text-center">
                                                 <input
