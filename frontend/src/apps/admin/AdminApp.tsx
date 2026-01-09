@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import {
     collection,
@@ -295,13 +296,13 @@ export function AdminApp() {
                         )}
 
                         {/* 返回廚房按鈕 - 橘色漸層帶文字 */}
-                        <a
-                            href="/kitchen"
+                        <Link
+                            to="/kitchen"
                             className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white px-4 py-2 rounded-lg transition flex items-center gap-2 font-bold text-sm shadow-lg shadow-orange-500/20"
                         >
                             <ChefHat className="w-4 h-4" />
                             <span className="hidden sm:inline">廚房後台</span>
-                        </a>
+                        </Link>
 
                         {/* 登出按鈕 - 文字連結風格 */}
                         <button

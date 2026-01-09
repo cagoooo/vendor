@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { useOrders } from '../../hooks/useOrders';
 import { Utensils, CheckCircle, Volume2, VolumeX, Maximize, Clock, Coffee } from 'lucide-react';
 
@@ -82,13 +83,13 @@ export function DisplayApp() {
                 </div>
                 <div className="text-right flex flex-col items-end gap-1">
                     <div className="flex items-center gap-2">
-                        <a
-                            href="/"
+                        <Link
+                            to="/"
                             className="flex items-center gap-1 px-3 py-1 rounded-full text-xs md:text-sm bg-orange-600/50 text-orange-200 border border-orange-500 hover:bg-orange-500 transition"
                         >
                             <Utensils className="w-3 h-3" />
                             <span>返回點餐</span>
-                        </a>
+                        </Link>
                         <button
                             onClick={toggleAudio}
                             className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs md:text-sm transition cursor-pointer ${audioEnabled

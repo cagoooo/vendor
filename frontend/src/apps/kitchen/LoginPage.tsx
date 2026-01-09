@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Loader2, Lock, Mail, ChefHat, Clock, UserPlus } from 'lucide-react';
 
@@ -225,9 +226,9 @@ export function LoginPage() {
 
                 {/* Footer */}
                 <div className="mt-8 text-center">
-                    <a href="/" className="text-gray-500 hover:text-orange-400 text-sm transition">
+                    <Link to="/" className="text-gray-500 hover:text-orange-400 text-sm transition">
                         ← 返回點餐頁面
-                    </a>
+                    </Link>
                 </div>
             </div>
         </div>

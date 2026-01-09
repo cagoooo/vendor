@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { useClassOrders } from '../../hooks/useClassOrders';
 import { useAuth } from '../../contexts/AuthContext';
 import {
@@ -271,13 +272,13 @@ export function KitchenApp() {
 
                         {/* Admin Link (owner only) - 紫色漸層帶文字 */}
                         {isOwner && (
-                            <a
-                                href="/admin"
+                            <Link
+                                to="/admin"
                                 className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white px-3 py-2 rounded-lg transition flex items-center gap-2 font-bold text-sm shadow-lg shadow-purple-500/20"
                             >
                                 <Settings className="w-4 h-4" />
                                 <span className="hidden sm:inline">管理中心</span>
-                            </a>
+                            </Link>
                         )}
 
                         {/* Settings Button - 灰色齒輪 */}
