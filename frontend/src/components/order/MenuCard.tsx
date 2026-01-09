@@ -30,7 +30,7 @@ export function MenuCard({ item, isTrending, quantity, onAdd, onRemove }: MenuCa
                 <div className="flex items-center p-3 sm:p-4">
                     {/* 左側圖片區 */}
                     <div
-                        className={`relative w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 rounded-xl overflow-hidden bg-gradient-to-br from-orange-100 to-amber-100 ${item.imageUrl ? 'cursor-pointer' : ''}`}
+                        className={`relative w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 flex-shrink-0 rounded-xl lg:rounded-2xl overflow-hidden bg-gradient-to-br from-orange-100 to-amber-100 ${item.imageUrl ? 'cursor-pointer' : ''}`}
                         onClick={() => item.imageUrl && setShowLightbox(true)}
                     >
                         {item.imageUrl ? (
@@ -71,13 +71,13 @@ export function MenuCard({ item, isTrending, quantity, onAdd, onRemove }: MenuCa
 
                     {/* 中間內容區 */}
                     <div className="flex-1 min-w-0 px-3 sm:px-4">
-                        <h3 className="font-bold text-gray-800 text-base sm:text-lg truncate mb-1">
+                        <h3 className="font-bold text-gray-800 text-base sm:text-lg lg:text-xl truncate mb-1">
                             {item.name}
                         </h3>
 
                         <div className="flex items-baseline gap-1 mb-2">
-                            <span className="text-orange-500 text-sm font-medium">$</span>
-                            <span className="text-2xl sm:text-3xl font-black text-gray-800">
+                            <span className="text-orange-500 text-sm lg:text-base font-medium">$</span>
+                            <span className="text-2xl sm:text-3xl lg:text-4xl font-black text-gray-800">
                                 {item.price}
                             </span>
                         </div>
@@ -101,35 +101,35 @@ export function MenuCard({ item, isTrending, quantity, onAdd, onRemove }: MenuCa
                             <button
                                 onClick={onAdd}
                                 disabled={isSoldOut}
-                                className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center transition-all active:scale-90 ${isSoldOut
+                                className={`w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-2xl flex items-center justify-center transition-all active:scale-90 ${isSoldOut
                                     ? 'bg-gray-100 text-gray-300 cursor-not-allowed'
                                     : 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-200 hover:shadow-xl hover:scale-105'
                                     }`}
                             >
-                                <Plus className="w-6 h-6" strokeWidth={2.5} />
+                                <Plus className="w-6 h-6 lg:w-7 lg:h-7" strokeWidth={2.5} />
                             </button>
                         ) : (
-                            <div className="flex items-center gap-1.5 sm:gap-2">
+                            <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-3">
                                 <button
                                     onClick={onRemove}
-                                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center transition-all active:scale-90"
+                                    className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-xl lg:rounded-2xl bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center transition-all active:scale-90"
                                 >
-                                    <Minus className="w-5 h-5" />
+                                    <Minus className="w-5 h-5 lg:w-6 lg:h-6" />
                                 </button>
 
-                                <div className="w-10 sm:w-12 text-center">
-                                    <span className="text-2xl font-black text-orange-500">{quantity}</span>
+                                <div className="w-10 sm:w-12 lg:w-14 text-center">
+                                    <span className="text-2xl lg:text-3xl font-black text-orange-500">{quantity}</span>
                                 </div>
 
                                 <button
                                     onClick={onAdd}
                                     disabled={isMaxReached}
-                                    className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center transition-all active:scale-90 ${isMaxReached
+                                    className={`w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-xl lg:rounded-2xl flex items-center justify-center transition-all active:scale-90 ${isMaxReached
                                         ? 'bg-gray-100 text-gray-300 cursor-not-allowed'
                                         : 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md hover:shadow-lg'
                                         }`}
                                 >
-                                    <Plus className="w-5 h-5" />
+                                    <Plus className="w-5 h-5 lg:w-6 lg:h-6" />
                                 </button>
                             </div>
                         )}

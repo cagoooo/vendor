@@ -274,3 +274,58 @@ textarea {
     font-size: 14px;
   }
 }
+
+/* 平板/電腦端優化 - 更大的字體和間距 */
+@media (min-width: 768px) {
+  html {
+    font-size: 17px;
+  }
+
+  /* 表格字體加大 */
+  table {
+    font-size: 1.05rem;
+  }
+
+  /* Swal 彈窗加大 */
+  .swal2-popup {
+    font-size: 1.1rem !important;
+  }
+
+  .swal2-title {
+    font-size: 1.5rem !important;
+  }
+}
+
+/* 桌面端優化 - 更大的字體和按鈕 */
+@media (min-width: 1024px) {
+  html {
+    font-size: 18px;
+  }
+
+  /* 按鈕放大 */
+  button {
+    min-height: 40px;
+  }
+
+  /* 輸入框放大 */
+  input,
+  select,
+  textarea {
+    min-height: 42px;
+    font-size: 1rem;
+  }
+
+  /* 表格行間距增加 */
+  table td,
+  table th {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+}
+
+/* 大桌面端 (1440px+) */
+@media (min-width: 1440px) {
+  html {
+    font-size: 19px;
+  }
+}

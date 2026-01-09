@@ -484,8 +484,8 @@ export function KitchenApp() {
                                             {/* Header */}
                                             <div className="flex justify-between items-start mb-2">
                                                 <div className="pr-12">
-                                                    <h3 className="text-lg font-bold text-white truncate">{order.info}</h3>
-                                                    <span className="text-xs text-gray-400 font-mono">{order.time}</span>
+                                                    <h3 className="text-lg lg:text-xl font-bold text-white truncate">{order.info}</h3>
+                                                    <span className="text-xs lg:text-sm text-gray-400 font-mono">{order.time}</span>
                                                     {isPrep && (
                                                         <span className="ml-2 text-[10px] bg-orange-600 px-1 rounded animate-pulse">製作中</span>
                                                     )}
@@ -494,8 +494,8 @@ export function KitchenApp() {
                                                     )}
                                                 </div>
                                                 <div className="text-right">
-                                                    <div className="text-[10px] text-gray-400">NO.</div>
-                                                    <div className="text-xl font-bold text-white" style={{ fontFamily: "'Courier New', monospace" }}>
+                                                    <div className="text-[10px] lg:text-xs text-gray-400">NO.</div>
+                                                    <div className="text-xl lg:text-2xl font-bold text-white" style={{ fontFamily: "'Courier New', monospace" }}>
                                                         {order.id.split('-')[1]}
                                                     </div>
                                                 </div>
@@ -509,9 +509,9 @@ export function KitchenApp() {
                                             )}
 
                                             {/* Items */}
-                                            <div className="bg-gray-900/50 rounded-lg p-3 mb-4 space-y-1 max-h-32 overflow-y-auto border border-gray-700/50">
+                                            <div className="bg-gray-900/50 rounded-lg p-3 lg:p-4 mb-4 space-y-1 lg:space-y-2 max-h-32 lg:max-h-40 overflow-y-auto border border-gray-700/50">
                                                 {order.items.map((item, idx) => (
-                                                    <div key={idx} className="flex justify-between text-sm border-b border-gray-700/50 pb-1">
+                                                    <div key={idx} className="flex justify-between text-sm lg:text-base border-b border-gray-700/50 pb-1 lg:pb-2">
                                                         <span className="text-gray-300">{item.name}</span>
                                                         <span className="font-bold text-orange-400">x{item.quantity}</span>
                                                     </div>
@@ -519,13 +519,13 @@ export function KitchenApp() {
                                             </div>
 
                                             {/* Actions */}
-                                            <div className="flex items-center gap-2 pt-3 border-t border-gray-700">
-                                                <span className="font-bold text-xl text-gray-300 w-16">
+                                            <div className="flex items-center gap-2 lg:gap-3 pt-3 lg:pt-4 border-t border-gray-700">
+                                                <span className="font-bold text-xl lg:text-2xl text-gray-300 w-16 lg:w-20">
                                                     ${order.total || order.totalPrice}
                                                 </span>
                                                 <button
                                                     onClick={() => handleStatusUpdate(order.id, nextStatus, order.total || order.totalPrice)}
-                                                    className={`flex-1 ${btnStyle} text-white px-3 py-3 rounded-lg font-bold shadow transition active:scale-95 text-sm`}
+                                                    className={`flex-1 ${btnStyle} text-white px-3 lg:px-4 py-3 lg:py-4 rounded-lg font-bold shadow transition active:scale-95 text-sm lg:text-base`}
                                                 >
                                                     {btnText}
                                                 </button>
