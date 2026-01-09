@@ -1,4 +1,12 @@
-const CACHE_NAME = 'campus-food-v3';
+const CACHE_NAME = 'campus-food-v4';
+
+// 動態獲取 base path（支援 /vendor/ 子目錄部署）
+const getBasePath = () => {
+    // sw.js 位於 /vendor/sw.js，所以取得 /vendor/
+    const swPath = self.location.pathname;
+    const basePath = swPath.substring(0, swPath.lastIndexOf('/') + 1);
+    return basePath;
+};
 
 // Install: Skip waiting
 self.addEventListener('install', () => {
@@ -30,10 +38,12 @@ self.addEventListener('fetch', (event) => {
 
     // Handle navigation requests (SPA routing)
     if (event.request.mode === 'navigate') {
+        const basePath = getBasePath();
+        const indexPath = basePath + 'index.html';
         event.respondWith(
             fetch(event.request)
-                .catch(() => caches.match('/index.html'))
-                .then((response) => response || caches.match('/index.html'))
+                .catch(() => caches.match(indexPath))
+                .then((response) => response || caches.match(indexPath))
         );
         return;
     }
