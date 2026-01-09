@@ -20,7 +20,8 @@ import {
     increment
 } from 'firebase/firestore';
 import type { DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
-import { db } from './firebase';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { db, storage } from './firebase';
 import type { MenuItem, Order, SystemConfig, ApiResponse } from '../types';
 
 // ============ 取得 Collection 路徑 ============
@@ -534,3 +535,71 @@ export async function createKitchen(
     }
 }
 
+// ============ 圖片 API ============
+
+/**
+ * 上傳菜單品項圖片
+ */
+export async function uploadMenuItemImage(
+    classId: string,
+    itemId: string,
+    file: File
+): Promise<ApiResponse<{ imageUrl: string }>> {
+    try {
+        // 產生唯一檔名
+        const ext = file.name.split('.').pop() || 'jpg';
+        const filename = `${itemId}_${Date.now()}.${ext}`;
+        const storagePath = `kitchens/${classId}/menuItems/${filename}`;
+
+        // 上傳到 Firebase Storage
+        const storageRef = ref(storage, storagePath);
+        await uploadBytes(storageRef, file);
+
+        // 取得下載 URL
+        const imageUrl = await getDownloadURL(storageRef);
+
+        // 更新 Firestore
+        await updateDoc(doc(db, getMenuItemsPath(classId), itemId), {
+            imageUrl,
+            updatedAt: Timestamp.now()
+        });
+
+        return { status: 'success', data: { imageUrl } };
+    } catch (error) {
+        console.error('uploadMenuItemImage error:', error);
+        return { status: 'error', message: 'Failed to upload image' };
+    }
+}
+
+/**
+ * 刪除菜單品項圖片
+ */
+export async function deleteMenuItemImage(
+    classId: string,
+    itemId: string,
+    imageUrl?: string
+): Promise<ApiResponse> {
+    try {
+        // 如果有提供 imageUrl，嘗試從 Storage 刪除
+        if (imageUrl && imageUrl.includes('firebasestorage')) {
+            try {
+                const storageRef = ref(storage, imageUrl);
+                await deleteObject(storageRef);
+            } catch (e) {
+                // 忽略刪除錯誤（檔案可能不存在）
+                console.warn('Could not delete storage object:', e);
+            }
+        }
+
+        // 清除 Firestore 中的 imageUrl
+        await updateDoc(doc(db, getMenuItemsPath(classId), itemId), {
+            imageUrl: '',
+            updatedAt: Timestamp.now()
+        });
+
+        return { status: 'success' };
+    } catch (error) {
+        console.error('deleteMenuItemImage error:', error);
+        return { status: 'error', message: 'Failed to delete image' };
+    }
+}

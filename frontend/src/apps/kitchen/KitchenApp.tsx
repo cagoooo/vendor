@@ -12,14 +12,16 @@ import {
     setClassSystemConfig,
     clearClassOrders,
     getAllKitchens,
+    uploadMenuItemImage,
+    deleteMenuItemImage,
     type Kitchen
 } from '../../services/classApi';
 import { OwnerDashboard } from '../../components/OwnerDashboard';
 import {
     Flame, RefreshCw, Settings, Trash2,
     ChefHat, Package, PieChart, Clock, Plus, Minus,
-    DollarSign, ShoppingBag, TrendingUp, LogOut, LayoutDashboard,
-    ChevronDown, Store
+    DollarSign, ShoppingBag, TrendingUp, LayoutDashboard,
+    ChevronDown, Store, ImagePlus, X, Upload
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { Bar, Doughnut } from 'react-chartjs-2';
@@ -406,15 +408,6 @@ export function KitchenApp() {
                         >
                             <Settings className="w-5 h-5" />
                         </button>
-
-                        {/* Logout Button - 紅色文字連結 */}
-                        <button
-                            onClick={logout}
-                            className="text-gray-400 hover:text-red-400 p-2 transition flex items-center gap-1"
-                            title="登出"
-                        >
-                            <LogOut className="w-5 h-5" />
-                        </button>
                     </div>
                 </div>
             </header>
@@ -583,6 +576,7 @@ export function KitchenApp() {
                             <table className="w-full text-left text-gray-300">
                                 <thead className="text-xs text-gray-400 uppercase bg-gray-700/50">
                                     <tr>
+                                        <th className="px-3 py-3 w-16">圖片</th>
                                         <th className="px-4 py-3">品項 (價格)</th>
                                         <th className="px-2 py-3 text-center">目前庫存</th>
                                         <th className="px-4 py-3 text-center">快速調整</th>
@@ -591,6 +585,79 @@ export function KitchenApp() {
                                 <tbody>
                                     {menuItems.map(item => (
                                         <tr key={item.id} className="border-b border-gray-700 hover:bg-gray-700/50 transition">
+                                            {/* 圖片欄 */}
+                                            <td className="px-3 py-2">
+                                                <div className="relative group">
+                                                    {item.imageUrl ? (
+                                                        <div className="relative">
+                                                            <img
+                                                                src={item.imageUrl}
+                                                                alt={item.name}
+                                                                className="w-12 h-12 object-cover rounded-lg border border-gray-600"
+                                                            />
+                                                            {/* 懸停時顯示操作按鈕 */}
+                                                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-1">
+                                                                <label className="cursor-pointer p-1 bg-blue-600 rounded hover:bg-blue-500 transition">
+                                                                    <Upload className="w-3 h-3 text-white" />
+                                                                    <input
+                                                                        type="file"
+                                                                        accept="image/*"
+                                                                        className="hidden"
+                                                                        onChange={async (e) => {
+                                                                            const file = e.target.files?.[0];
+                                                                            if (file && currentClassId) {
+                                                                                Swal.fire({ title: '上傳中...', allowOutsideClick: false, didOpen: () => Swal.showLoading(), background: '#1f2937', color: '#fff' });
+                                                                                await uploadMenuItemImage(currentClassId, item.id, file);
+                                                                                Swal.close();
+                                                                                loadInventory();
+                                                                            }
+                                                                        }}
+                                                                    />
+                                                                </label>
+                                                                <button
+                                                                    onClick={async () => {
+                                                                        const result = await Swal.fire({
+                                                                            title: '移除圖片？',
+                                                                            icon: 'warning',
+                                                                            showCancelButton: true,
+                                                                            confirmButtonColor: '#d33',
+                                                                            cancelButtonText: '取消',
+                                                                            confirmButtonText: '移除',
+                                                                            background: '#1f2937',
+                                                                            color: '#fff',
+                                                                        });
+                                                                        if (result.isConfirmed && currentClassId) {
+                                                                            await deleteMenuItemImage(currentClassId, item.id, item.imageUrl);
+                                                                            loadInventory();
+                                                                        }
+                                                                    }}
+                                                                    className="p-1 bg-red-600 rounded hover:bg-red-500 transition"
+                                                                >
+                                                                    <X className="w-3 h-3 text-white" />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <label className="w-12 h-12 border-2 border-dashed border-gray-600 rounded-lg flex items-center justify-center cursor-pointer hover:border-orange-500 hover:bg-gray-700/50 transition">
+                                                            <ImagePlus className="w-5 h-5 text-gray-500" />
+                                                            <input
+                                                                type="file"
+                                                                accept="image/*"
+                                                                className="hidden"
+                                                                onChange={async (e) => {
+                                                                    const file = e.target.files?.[0];
+                                                                    if (file && currentClassId) {
+                                                                        Swal.fire({ title: '上傳中...', allowOutsideClick: false, didOpen: () => Swal.showLoading(), background: '#1f2937', color: '#fff' });
+                                                                        await uploadMenuItemImage(currentClassId, item.id, file);
+                                                                        Swal.close();
+                                                                        loadInventory();
+                                                                    }
+                                                                }}
+                                                            />
+                                                        </label>
+                                                    )}
+                                                </div>
+                                            </td>
                                             <td className="px-4 py-3 font-bold text-gray-200">
                                                 <span>{item.name}</span>
                                                 <span className="text-xs text-gray-500 ml-2">(${item.price})</span>

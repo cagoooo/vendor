@@ -492,7 +492,7 @@ export function CustomerApp() {
             {showShare && <ShareModal shareUrl={shareUrl} title="🍽️ 校園點餐系統" onClose={() => setShowShare(false)} />}
 
             {/* 快速連結按鈕群 */}
-            <div className="fixed bottom-24 left-4 flex flex-col gap-2 z-30">
+            <div className="fixed bottom-28 sm:bottom-24 left-3 sm:left-4 flex flex-col gap-2 z-50">
                 {/* 叫號顯示 */}
                 <Link
                     to={`/display/${classId}`}

@@ -98,23 +98,26 @@ export function DisplayApp() {
                     </p>
                 </div>
                 <div className="text-right flex flex-col items-end gap-1">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1 md:gap-2">
                         <Link
                             to={`/order/${classId}`}
-                            className="flex items-center gap-1 px-3 py-1 rounded-full text-xs md:text-sm bg-orange-600/50 text-orange-200 border border-orange-500 hover:bg-orange-500 transition"
+                            className="flex items-center gap-1 px-2 md:px-3 py-1 rounded-full text-xs md:text-sm bg-orange-600/50 text-orange-200 border border-orange-500 hover:bg-orange-500 transition"
+                            title="返回點餐"
                         >
-                            <Utensils className="w-3 h-3" />
-                            <span>返回點餐</span>
+                            <Utensils className="w-3 h-3 md:w-4 md:h-4" />
+                            <span className="hidden sm:inline">返回點餐</span>
                         </Link>
                         <button
                             onClick={toggleAudio}
-                            className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs md:text-sm transition cursor-pointer ${audioEnabled
+                            title={audioEnabled ? '點擊靜音' : '點擊開啟音效'}
+                            className={`flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1 rounded-full text-xs md:text-sm transition cursor-pointer ${audioEnabled
                                 ? 'bg-green-900/50 text-green-300 border border-green-700 hover:bg-green-800'
                                 : 'bg-red-900/50 text-red-300 border border-red-700 hover:bg-red-900 animate-pulse'
                                 }`}
                         >
                             {audioEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-                            <span>{audioEnabled ? '音效已開啟 (點擊靜音)' : '音效已關閉 (點擊開啟)'}</span>
+                            <span className="sm:hidden">{audioEnabled ? '開' : '關'}</span>
+                            <span className="hidden sm:inline">{audioEnabled ? '音效已開啟' : '音效已關閉'}</span>
                         </button>
                     </div>
                     <p className="text-xs md:text-sm text-gray-500">Pickup Area</p>

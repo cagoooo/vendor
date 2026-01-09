@@ -1,0 +1,15 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // 菜單圖片 - 已登入使用者可上傳
+    match /kitchens/{classId}/menuItems/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    // 預設規則 - 拒絕所有其他操作
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
