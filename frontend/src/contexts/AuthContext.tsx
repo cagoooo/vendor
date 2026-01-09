@@ -137,7 +137,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const isClassAdmin = profile?.role === 'classAdmin';
     const isPending = profile?.role === 'pending';
     const isAuthenticated = !!user && !!profile && (profile.role === 'owner' || profile.role === 'staff' || profile.role === 'classAdmin');
-    const currentClassId = profile?.classId || null;
+    // owner 如果沒有設定 classId，使用預設值 'default'
+    const currentClassId = profile?.classId || (profile?.role === 'owner' ? 'default' : null);
 
     // 申請成為班級管理員
     const requestClassAdmin = async () => {
