@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>校園點餐系統 - 校慶園遊會線上點餐平台</title>
+    <meta name="description" content="校園點餐系統是專為校慶園遊會設計的線上點餐平台，提供即時叫號、快速取餐等服務。">
+    <meta name="application-name" content="校園點餐系統">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e4e4e7;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        h1 {
+            color: #f97316;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: #a78bfa;
+            font-size: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .description {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 1rem;
+            padding: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .description p {
+            line-height: 1.8;
+            color: #a1a1aa;
+            margin-bottom: 1rem;
+        }
+
+        .features {
+            display: grid;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: #a1a1aa;
+        }
+
+        .feature-icon {
+            font-size: 1.5rem;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(249, 115, 22, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e4e4e7;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        footer {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2rem;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: #f97316;
+            text-decoration: underline;
+        }
+
+        .footer-links a:hover {
+            color: #fb923c;
+        }
+
+        .copyright {
+            color: #52525b;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="hero">
+            <h1>🍽️ 校園點餐系統</h1>
+            <p class="subtitle">校慶園遊會線上點餐平台</p>
+        </div>
+
+        <div class="description">
+            <p>
+                專為校慶園遊會設計的線上點餐平台。提供餐點瀏覽、線上點餐、即時叫號、快速取餐等功能，讓校園美食活動更有效率。
+            </p>
+
+            <div class="features">
+                <div class="feature-item">
+                    <span class="feature-icon">📱</span>
+                    <span>線上點餐 - 瀏覽各班級攤位的餐點菜單，輕鬆下單</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">🔔</span>
+                    <span>即時叫號 - 餐點準備好時立即通知，方便取餐</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">👨‍🍳</span>
+                    <span>廚房管理 - 班級工作人員可使用 Google 登入管理訂單</span>
+                </div>
+            </div>
+
+            <div class="cta-buttons">
+                <a href="./index.html" class="btn btn-primary">🚀 進入系統</a>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-links">
+            <a href="./index.html">🏠 進入系統</a>
+            <a href="./privacy.html">🔒 隱私權政策</a>
+            <a href="./terms.html">📜 服務條款</a>
+        </div>
+        <p class="copyright">© 2026 校園點餐系統. All rights reserved.</p>
+    </footer>
+</body>
+
+</html>
