@@ -791,7 +791,7 @@ export function KitchenApp() {
 
                                                         const { value } = await Swal.fire({
                                                             title: '選擇分類',
-                                                            html: `<select id="cat-select" class="swal2-input">${categoryOptions}</select>`,
+                                                            html: `<select id="cat-select" class="swal2-input" style="background-color: #374151; color: #fff; border-color: #4b5563;">${categoryOptions}</select>`,
                                                             showCancelButton: true,
                                                             confirmButtonText: '確認',
                                                             cancelButtonText: '取消',
