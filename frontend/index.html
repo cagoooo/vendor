@@ -13,15 +13,20 @@
   <meta name="apple-mobile-web-app-title" content="校園點餐系統" />
 
   <!-- SEO & Google OAuth 驗證 -->
-  <meta name="description" content="校園點餐系統 - 專為校慶園遊會設計的線上點餐平台，提供即時叫號、快速取餐等服務。" />
+  <meta name="description" content="校園點餐系統 - 專為校慶園遊會設計的線上點餐平台，提供即時叫號、快速取餐等服務。使用 Google 登入讓班級工作人員安全管理攤位。" />
   <meta name="keywords" content="校園點餐系統,點餐,校園,園遊會,線上訂餐" />
   <meta name="application-name" content="校園點餐系統" />
+  <meta name="author" content="校園點餐系統" />
 
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website" />
   <meta property="og:title" content="校園點餐系統" />
   <meta property="og:description" content="專為校慶園遊會設計的線上點餐平台，提供即時叫號、快速取餐等服務。" />
   <meta property="og:site_name" content="校園點餐系統" />
+
+  <!-- 隱私權政策 & 服務條款 連結 (Google OAuth 驗證必要) -->
+  <link rel="privacy-policy" href="./privacy.html" />
+  <link rel="terms-of-service" href="./terms.html" />
 
   <!-- Icons -->
   <link rel="icon" type="image/png" href="./icons/icon-512.png" />
@@ -31,6 +36,28 @@
   <link rel="manifest" href="./manifest.json" />
 
   <title>校園點餐系統</title>
+
+  <!-- JSON-LD 結構化資料 (Google OAuth 驗證) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "校園點餐系統",
+    "description": "專為校慶園遊會設計的線上點餐平台，提供即時叫號、快速取餐等服務。使用 Google 登入讓班級工作人員安全管理攤位訂單。",
+    "applicationCategory": "FoodOrderingApplication",
+    "operatingSystem": "Web",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "TWD"
+    },
+    "author": {
+      "@type": "Organization",
+      "name": "校園點餐系統",
+      "email": "cagooo@gmail.com"
+    }
+  }
+  </script>
 </head>
 
 <body>
