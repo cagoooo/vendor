@@ -580,6 +580,11 @@ export function KitchenApp() {
 
                                         let currentCats = [...categories];
 
+                                        // 如果是預設分類且尚未儲存，先初始化到 Firestore
+                                        if (currentClassId && currentCats.length > 0 && currentCats[0].id === 'main') {
+                                            await updateClassCategories(currentClassId, currentCats);
+                                        }
+
                                         const result = await Swal.fire({
                                             title: '管理分類',
                                             html: buildCategoryHtml(currentCats),
