@@ -58,9 +58,17 @@ export function CustomerApp() {
             for (const [cid, orderIds] of ordersByClass.entries()) {
                 const result = await checkClassOrderStatus(cid, orderIds);
                 if (result.status === 'success' && result.data) {
+                    // 更新有返回狀態的訂單
                     Object.entries(result.data).forEach(([orderId, status]) => {
                         orderHistory.updateOrderStatus(orderId, status);
                     });
+
+                    // 移除後台已刪除的訂單（不在返回結果中）
+                    for (const orderId of orderIds) {
+                        if (!(orderId in result.data)) {
+                            orderHistory.removeOrder(orderId);
+                        }
+                    }
                 }
             }
 

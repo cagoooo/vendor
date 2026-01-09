@@ -8,6 +8,7 @@ interface OrderHistoryState {
     // Actions
     addOrder: (order: Order) => void;
     updateOrderStatus: (orderId: string, status: string) => void;
+    removeOrder: (orderId: string) => void;
     getActiveOrders: () => Order[];
     clearHistory: () => void;
     clearCompletedOrders: () => void;
@@ -27,6 +28,12 @@ export const useOrderHistoryStore = create<OrderHistoryState>()(
                     orders: get().orders.map(o =>
                         o.id === orderId ? { ...o, status: status as Order['status'] } : o
                     )
+                });
+            },
+
+            removeOrder: (orderId) => {
+                set({
+                    orders: get().orders.filter(o => o.id !== orderId)
                 });
             },
 

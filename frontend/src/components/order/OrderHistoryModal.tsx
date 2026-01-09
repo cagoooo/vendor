@@ -41,7 +41,7 @@ const statusConfig = {
 };
 
 export function OrderHistoryModal({ onClose }: OrderHistoryModalProps) {
-    const { orders, updateOrderStatus, getActiveOrders, clearCompletedOrders } = useOrderHistoryStore();
+    const { orders, updateOrderStatus, removeOrder, getActiveOrders, clearCompletedOrders } = useOrderHistoryStore();
     const [isRefreshing, setIsRefreshing] = useState(false);
     const activeOrders = getActiveOrders();
     const completedOrders = orders.filter(o => o.status === 'Paid' || o.status === 'Cancelled');
@@ -67,9 +67,17 @@ export function OrderHistoryModal({ onClose }: OrderHistoryModalProps) {
         for (const [classId, orderIds] of ordersByClass.entries()) {
             const result = await checkClassOrderStatus(classId, orderIds);
             if (result.status === 'success' && result.data) {
+                // 更新有返回狀態的訂單
                 Object.entries(result.data).forEach(([orderId, status]) => {
                     updateOrderStatus(orderId, status);
                 });
+
+                // 移除後台已刪除的訂單
+                for (const orderId of orderIds) {
+                    if (!(orderId in result.data)) {
+                        removeOrder(orderId);
+                    }
+                }
             }
         }
     };
@@ -108,8 +116,8 @@ export function OrderHistoryModal({ onClose }: OrderHistoryModalProps) {
             >
                 {/* Header - 如果有請取餐訂單，顯示特殊樣式 */}
                 <div className={`sticky top-0 border-b px-4 sm:px-6 py-4 flex justify-between items-center z-10 transition-colors ${readyOrders.length > 0
-                        ? 'bg-gradient-to-r from-green-500 to-emerald-600 border-green-400'
-                        : 'bg-white border-gray-100'
+                    ? 'bg-gradient-to-r from-green-500 to-emerald-600 border-green-400'
+                    : 'bg-white border-gray-100'
                     }`}>
                     <div>
                         <h2 className={`text-xl font-black ${readyOrders.length > 0 ? 'text-white' : 'text-gray-800'}`}>
@@ -128,8 +136,8 @@ export function OrderHistoryModal({ onClose }: OrderHistoryModalProps) {
                         <button
                             onClick={handleRefresh}
                             className={`p-2.5 rounded-xl transition ${readyOrders.length > 0
-                                    ? 'bg-white/20 hover:bg-white/30 text-white'
-                                    : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
+                                ? 'bg-white/20 hover:bg-white/30 text-white'
+                                : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
                                 } ${isRefreshing ? 'animate-spin' : ''}`}
                         >
                             <RefreshCw className="w-5 h-5" />
@@ -137,8 +145,8 @@ export function OrderHistoryModal({ onClose }: OrderHistoryModalProps) {
                         <button
                             onClick={onClose}
                             className={`p-2.5 rounded-xl transition ${readyOrders.length > 0
-                                    ? 'bg-white/20 hover:bg-white/30 text-white'
-                                    : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
+                                ? 'bg-white/20 hover:bg-white/30 text-white'
+                                : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
                                 }`}
                         >
                             <X className="w-5 h-5" />
