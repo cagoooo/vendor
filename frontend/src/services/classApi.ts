@@ -136,7 +136,6 @@ export async function placeClassOrder(
 
         const orderId = await generateClassOrderId(classId);
         const batch = writeBatch(db);
-        const today = new Date().toISOString().slice(0, 10);
 
         // 更新庫存
         for (const item of items) {
@@ -164,34 +163,8 @@ export async function placeClassOrder(
             updatedAt: Timestamp.now()
         });
 
-        // 更新每日銷售統計
-        const dailySalesRef = doc(db, getDailySalesPath(classId), today);
-        const dailySalesSnap = await getDoc(dailySalesRef);
-
-        if (!dailySalesSnap.exists()) {
-            const initialItemSales: Record<string, number> = {};
-            for (const item of items) {
-                initialItemSales[item.name] = item.quantity;
-            }
-            batch.set(dailySalesRef, {
-                revenue: totalPrice,
-                orderCount: 1,
-                itemSales: initialItemSales,
-                date: today,
-                updatedAt: Timestamp.now()
-            });
-        } else {
-            batch.update(dailySalesRef, {
-                revenue: increment(totalPrice),
-                orderCount: increment(1),
-                updatedAt: Timestamp.now()
-            });
-            for (const item of items) {
-                batch.update(dailySalesRef, {
-                    [`itemSales.${item.name}`]: increment(item.quantity)
-                });
-            }
-        }
+        // 注意：銷售統計在 updateClassOrderStatus 的 Paid 階段更新，
+        // 這樣取消的訂單不會計入統計
 
         await batch.commit();
         return { status: 'success', orderId };
