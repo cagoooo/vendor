@@ -555,19 +555,19 @@ export function KitchenApp() {
                                     onClick={async () => {
                                         // 分類管理介面
                                         const buildCategoryHtml = (cats: CategoryItem[]) => `
-                                            <div class="text-left max-h-60 overflow-y-auto mb-4">
-                                                ${cats.map((c, i) => `
-                                                    <div class="flex items-center justify-between bg-gray-700 rounded-lg p-2 mb-2">
-                                                        <span>${c.icon} ${c.name}</span>
-                                                        <button class="cat-del text-red-400 hover:text-red-300 text-sm px-2" data-id="${c.id}">刪除</button>
+                                            <div class="text-left max-h-48 overflow-y-auto mb-4">
+                                                ${cats.map((c) => `
+                                                    <div class="flex items-center justify-between bg-gray-700 rounded-lg p-3 mb-2">
+                                                        <span class="text-base">${c.icon} ${c.name}</span>
+                                                        <button class="cat-del text-red-400 hover:text-red-300 text-sm px-3 py-1" data-id="${c.id}">刪除</button>
                                                     </div>
                                                 `).join('')}
                                             </div>
                                             <div class="border-t border-gray-600 pt-4">
-                                                <p class="text-sm text-gray-400 mb-2">新增分類</p>
-                                                <div class="flex gap-2">
-                                                    <input id="cat-icon" class="swal2-input w-16 text-center" placeholder="🍔" maxlength="2" style="margin: 0">
-                                                    <input id="cat-name" class="swal2-input flex-1" placeholder="分類名稱" style="margin: 0">
+                                                <p class="text-sm text-gray-400 mb-3">新增分類</p>
+                                                <div class="flex gap-2 items-center">
+                                                    <input id="cat-icon" class="w-14 h-10 text-center text-xl rounded-lg border border-gray-600 bg-gray-700 text-white" placeholder="🍔" maxlength="2">
+                                                    <input id="cat-name" class="flex-1 h-10 px-3 rounded-lg border border-gray-600 bg-gray-700 text-white" placeholder="分類名稱">
                                                 </div>
                                             </div>
                                         `;
