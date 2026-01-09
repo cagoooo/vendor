@@ -153,6 +153,7 @@ export function CustomerApp() {
             if (response.status === 'success' && response.orderId) {
                 orderHistory.addOrder({
                     id: response.orderId,
+                    classId: classId, // 儲存班級 ID 以便訂單狀態查詢
                     customerInfo: { class: cart.customerClass, name: cart.customerName },
                     items: cart.items.map(item => ({
                         menuItemId: item.menuItemId,

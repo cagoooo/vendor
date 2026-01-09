@@ -331,6 +331,25 @@ export async function cancelClassOrder(classId: string, orderId: string): Promis
     }
 }
 
+/**
+ * 檢查班級訂單狀態（用於顧客端訂單追蹤）
+ */
+export async function checkClassOrderStatus(classId: string, orderIds: string[]): Promise<ApiResponse<Record<string, string>>> {
+    try {
+        const result: Record<string, string> = {};
+        for (const orderId of orderIds) {
+            const orderDocSnap = await getDoc(doc(db, getOrdersPath(classId), orderId));
+            if (orderDocSnap.exists()) {
+                result[orderId] = orderDocSnap.data()?.status || 'Unknown';
+            }
+        }
+        return { status: 'success', data: result };
+    } catch (error) {
+        console.error('checkClassOrderStatus error:', error);
+        return { status: 'error', message: 'Failed to check status' };
+    }
+}
+
 // ============ 庫存 API ============
 
 export async function updateClassStock(classId: string, itemId: string, quantity: number): Promise<ApiResponse> {

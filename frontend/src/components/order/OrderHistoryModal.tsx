@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X, Clock, ChefHat, CheckCircle, CreditCard, XCircle, RefreshCw } from 'lucide-react';
 import { useOrderHistoryStore } from '../../stores';
-import { checkOrderStatus } from '../../services/api';
+import { checkClassOrderStatus } from '../../services/classApi';
 
 interface OrderHistoryModalProps {
     onClose: () => void;
@@ -46,35 +46,40 @@ export function OrderHistoryModal({ onClose }: OrderHistoryModalProps) {
     const activeOrders = getActiveOrders();
     const completedOrders = orders.filter(o => o.status === 'Paid' || o.status === 'Cancelled');
 
-    useEffect(() => {
-        const refreshStatuses = async () => {
-            const orderIds = activeOrders.map(order => order.id);
-            if (orderIds.length === 0) return;
+    // 刷新訂單狀態 - 按 classId 分組查詢
+    const refreshStatuses = async (targetOrders: typeof orders) => {
+        if (targetOrders.length === 0) return;
 
-            const result = await checkOrderStatus(orderIds);
-            if (result.status === 'success' && result.data) {
-                Object.entries(result.data).forEach(([orderId, status]) => {
-                    updateOrderStatus(orderId, status);
-                });
+        // 按 classId 分組
+        const ordersByClass = new Map<string, string[]>();
+        for (const order of targetOrders) {
+            const classId = order.classId || 'default';
+            if (!ordersByClass.has(classId)) {
+                ordersByClass.set(classId, []);
             }
-        };
+            ordersByClass.get(classId)!.push(order.id);
+        }
 
-        refreshStatuses();
-        const interval = setInterval(refreshStatuses, 10000);
-        return () => clearInterval(interval);
-    }, [activeOrders.length]);
-
-    const handleRefresh = async () => {
-        setIsRefreshing(true);
-        const orderIds = orders.map(order => order.id);
-        if (orderIds.length > 0) {
-            const result = await checkOrderStatus(orderIds);
+        // 對每個 classId 查詢訂單狀態
+        for (const [classId, orderIds] of ordersByClass.entries()) {
+            const result = await checkClassOrderStatus(classId, orderIds);
             if (result.status === 'success' && result.data) {
                 Object.entries(result.data).forEach(([orderId, status]) => {
                     updateOrderStatus(orderId, status);
                 });
             }
         }
+    };
+
+    useEffect(() => {
+        refreshStatuses(activeOrders);
+        const interval = setInterval(() => refreshStatuses(activeOrders), 10000);
+        return () => clearInterval(interval);
+    }, [activeOrders.length]);
+
+    const handleRefresh = async () => {
+        setIsRefreshing(true);
+        await refreshStatuses(orders);
         setTimeout(() => setIsRefreshing(false), 500);
     };
 

@@ -21,6 +21,7 @@ export interface OrderItem {
 export interface Order {
     id: string;
     orderId?: string; // 相容舊格式
+    classId?: string; // 班級廚房 ID（用於訂單狀態查詢）
     customerInfo: {
         class: string;
         name: string;
