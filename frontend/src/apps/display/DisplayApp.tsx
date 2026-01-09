@@ -1,10 +1,26 @@
-import { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
-import { useOrders } from '../../hooks/useOrders';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { useClassOrders } from '../../hooks/useClassOrders';
 import { Utensils, CheckCircle, Volume2, VolumeX, Maximize, Clock, Coffee } from 'lucide-react';
 
 export function DisplayApp() {
-    const { preparingOrders, completedOrders } = useOrders(true);
+    // 從 URL 讀取 classId（支援 /display/:classId 或 ?class=xxx）
+    const { classId: paramClassId } = useParams<{ classId?: string }>();
+    const [searchParams] = useSearchParams();
+    const classId = paramClassId || searchParams.get('class') || 'default';
+
+    const { orders } = useClassOrders(classId, true);
+
+    // 計算 preparingOrders 和 completedOrders
+    const preparingOrders = useMemo(() =>
+        orders.filter(o => o.status === 'Preparing' || o.status === 'Pending'),
+        [orders]
+    );
+    const completedOrders = useMemo(() =>
+        orders.filter(o => o.status === 'Completed'),
+        [orders]
+    );
+
     const [audioEnabled, setAudioEnabled] = useState(false);
     const [lastReadyIds, setLastReadyIds] = useState<Set<string>>(new Set());
     const [isFirstLoad, setIsFirstLoad] = useState(true);

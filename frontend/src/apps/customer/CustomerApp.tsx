@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
-import { useMenu } from '../../hooks/useMenu';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { useClassMenu } from '../../hooks/useClassMenu';
 import { useCartStore, useOrderHistoryStore } from '../../stores';
-import { placeOrder } from '../../services/api';
+import { placeClassOrder } from '../../services/classApi';
 import { MenuCard } from '../../components/order/MenuCard';
 import { CartDrawer } from '../../components/order/CartDrawer';
 import { OrderHistoryModal } from '../../components/order/OrderHistoryModal';
@@ -12,7 +12,12 @@ import Swal from 'sweetalert2';
 type Category = 'all' | 'main' | 'drink' | 'dessert';
 
 export function CustomerApp() {
-    const { menuItems, trendingItems, systemConfig, isLoading, error } = useMenu();
+    // 從 URL 讀取 classId（支援 /order/:classId 或 ?class=xxx）
+    const { classId: paramClassId } = useParams<{ classId?: string }>();
+    const [searchParams] = useSearchParams();
+    const classId = paramClassId || searchParams.get('class') || 'default';
+
+    const { menuItems, trendingItems, systemConfig, isLoading, error } = useClassMenu(classId);
     const cart = useCartStore();
     const orderHistory = useOrderHistoryStore();
 
@@ -131,7 +136,8 @@ export function CustomerApp() {
         setIsSubmitting(true);
 
         try {
-            const response = await placeOrder(
+            const response = await placeClassOrder(
+                classId,
                 cart.customerClass,
                 cart.customerName,
                 cart.items.map(item => ({
