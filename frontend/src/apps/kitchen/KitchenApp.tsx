@@ -553,9 +553,12 @@ export function KitchenApp() {
                                 {/* 管理分類按鈕 */}
                                 <button
                                     onClick={async () => {
+                                        // 常用 emoji 選項
+                                        const emojiOptions = ['🍔', '🍛', '🍜', '🍝', '🍕', '🍟', '🌮', '🌯', '🥤', '☕', '🧋', '🍹', '🍰', '🍩', '🍪', '🧁', '🍦', '🍨', '🥗', '🥪', '🍱', '🍙', '🍘', '🍢', '🥟', '🍗', '🍖', '🥩', '🌭', '🥓'];
+
                                         // 分類管理介面
-                                        const buildCategoryHtml = (cats: CategoryItem[]) => `
-                                            <div class="text-left max-h-48 overflow-y-auto mb-4">
+                                        const buildCategoryHtml = (cats: CategoryItem[], selectedEmoji = '🍔') => `
+                                            <div class="text-left max-h-40 overflow-y-auto mb-4">
                                                 ${cats.map((c) => `
                                                     <div class="flex items-center justify-between bg-gray-700 rounded-lg p-3 mb-2">
                                                         <span class="text-base">${c.icon} ${c.name}</span>
@@ -564,11 +567,14 @@ export function KitchenApp() {
                                                 `).join('')}
                                             </div>
                                             <div class="border-t border-gray-600 pt-4">
-                                                <p class="text-sm text-gray-400 mb-3">新增分類</p>
-                                                <div class="flex gap-2 items-center">
-                                                    <input id="cat-icon" class="w-14 h-10 text-center text-xl rounded-lg border border-gray-600 bg-gray-700 text-white" placeholder="🍔" maxlength="2">
-                                                    <input id="cat-name" class="flex-1 h-10 px-3 rounded-lg border border-gray-600 bg-gray-700 text-white" placeholder="分類名稱">
+                                                <p class="text-sm text-gray-400 mb-2">新增分類</p>
+                                                <input type="hidden" id="cat-icon" value="${selectedEmoji}">
+                                                <div class="grid grid-cols-6 gap-1 mb-3 max-h-24 overflow-y-auto p-1 bg-gray-800 rounded-lg">
+                                                    ${emojiOptions.map(e => `
+                                                        <button type="button" class="emoji-btn text-xl p-2 rounded hover:bg-gray-600 transition ${e === selectedEmoji ? 'bg-orange-500' : 'bg-gray-700'}" data-emoji="${e}">${e}</button>
+                                                    `).join('')}
                                                 </div>
+                                                <input id="cat-name" class="w-full h-10 px-3 rounded-lg border border-gray-600 bg-gray-700 text-white" placeholder="分類名稱">
                                             </div>
                                         `;
 
@@ -584,6 +590,19 @@ export function KitchenApp() {
                                             background: '#1f2937',
                                             color: '#fff',
                                             didOpen: () => {
+                                                // 綁定 emoji 選擇事件
+                                                document.querySelectorAll('.emoji-btn').forEach(btn => {
+                                                    btn.addEventListener('click', (e) => {
+                                                        const emoji = (e.target as HTMLElement).dataset.emoji;
+                                                        if (emoji) {
+                                                            (document.getElementById('cat-icon') as HTMLInputElement).value = emoji;
+                                                            // 更新選中狀態
+                                                            document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('bg-orange-500'));
+                                                            (e.target as HTMLElement).classList.add('bg-orange-500');
+                                                        }
+                                                    });
+                                                });
+
                                                 // 綁定刪除事件
                                                 document.querySelectorAll('.cat-del').forEach(btn => {
                                                     btn.addEventListener('click', async (e) => {
@@ -594,6 +613,16 @@ export function KitchenApp() {
                                                             setCategories(currentCats);
                                                             Swal.update({ html: buildCategoryHtml(currentCats) });
                                                             // 重新綁定事件
+                                                            document.querySelectorAll('.emoji-btn').forEach(btn2 => {
+                                                                btn2.addEventListener('click', (e2) => {
+                                                                    const emoji = (e2.target as HTMLElement).dataset.emoji;
+                                                                    if (emoji) {
+                                                                        (document.getElementById('cat-icon') as HTMLInputElement).value = emoji;
+                                                                        document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('bg-orange-500'));
+                                                                        (e2.target as HTMLElement).classList.add('bg-orange-500');
+                                                                    }
+                                                                });
+                                                            });
                                                             document.querySelectorAll('.cat-del').forEach(btn2 => {
                                                                 btn2.addEventListener('click', async (e2) => {
                                                                     const id2 = (e2.target as HTMLElement).dataset.id;
