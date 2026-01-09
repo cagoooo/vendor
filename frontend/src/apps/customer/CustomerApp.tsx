@@ -429,6 +429,38 @@ export function CustomerApp() {
                     </svg>
                 </Link>
             </div>
+
+            {/* 頁尾 - OAuth 品牌驗證必要資訊 */}
+            <footer className="bg-gray-900 text-gray-400 py-8 mt-8">
+                <div className="max-w-4xl mx-auto px-4 text-center">
+                    <h2 className="text-xl font-bold text-white mb-2">🍽️ 校園點餐系統</h2>
+                    <p className="text-sm mb-4 max-w-md mx-auto">
+                        校園點餐系統是專為校慶園遊會設計的線上點餐平台，提供即時叫號、快速取餐等服務，讓您輕鬆享用美食。
+                    </p>
+                    <div className="flex justify-center gap-4 text-xs">
+                        <a
+                            href="./privacy.html"
+                            className="text-orange-400 hover:text-orange-300 underline"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            🔒 隱私權政策
+                        </a>
+                        <span className="text-gray-600">|</span>
+                        <a
+                            href="./terms.html"
+                            className="text-orange-400 hover:text-orange-300 underline"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            📋 服務條款
+                        </a>
+                    </div>
+                    <p className="text-xs text-gray-600 mt-4">
+                        © 2026 校園點餐系統. All rights reserved.
+                    </p>
+                </div>
+            </footer>
         </div>
     );
 }
