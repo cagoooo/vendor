@@ -2,7 +2,8 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { useClassMenu } from '../../hooks/useClassMenu';
 import { useCartStore, useOrderHistoryStore } from '../../stores';
-import { placeClassOrder, checkClassOrderStatus } from '../../services/classApi';
+import { placeClassOrder, checkClassOrderStatus, getClassCategories } from '../../services/classApi';
+import type { CategoryItem } from '../../types';
 import { MenuCard } from '../../components/order/MenuCard';
 import { CartDrawer } from '../../components/order/CartDrawer';
 import { OrderHistoryModal } from '../../components/order/OrderHistoryModal';
@@ -10,7 +11,7 @@ import { ShareModal } from '../../components/share/ShareModal';
 import { ShoppingCart, Receipt, Clock, Loader2, Store, Search, Utensils, QrCode } from 'lucide-react';
 import Swal from 'sweetalert2';
 
-type Category = 'all' | 'main' | 'drink' | 'dessert';
+type Category = 'all' | string; // 支援動態分類
 
 export function CustomerApp() {
     // 從 URL 讀取 classId（支援 /order/:classId 或 ?class=xxx）
@@ -28,6 +29,7 @@ export function CustomerApp() {
     const [showHistory, setShowHistory] = useState(false);
     const [showShare, setShowShare] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [categories, setCategories] = useState<CategoryItem[]>([]);
 
     // 追蹤「請取餐」訂單數量，用於自動彈出
     const prevReadyCountRef = useRef(0);
@@ -94,6 +96,17 @@ export function CustomerApp() {
         const interval = setInterval(pollOrderStatus, 10000);
         return () => clearInterval(interval);
     }, [orderHistory.orders.length]);
+
+    // 載入班級的自訂分類
+    useEffect(() => {
+        const loadCategories = async () => {
+            const result = await getClassCategories(classId);
+            if (result.status === 'success' && result.data) {
+                setCategories(result.data);
+            }
+        };
+        loadCategories();
+    }, [classId]);
 
     const filteredMenu = useMemo(() => {
         return menuItems.filter(item => {
@@ -393,29 +406,36 @@ export function CustomerApp() {
 
                     {/* 分類Tab */}
                     <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-                        {(['all', 'main', 'drink', 'dessert'] as Category[]).map(cat => {
-                            const labels: Record<Category, string> = { all: '🍽️ 全部', main: '🍛 主食', drink: '🥤 飲料', dessert: '🍰 點心' };
-                            const isActive = category === cat;
-                            return (
-                                <button
-                                    key={cat}
-                                    onClick={() => setCategory(cat)}
-                                    className={`whitespace-nowrap px-4 sm:px-5 py-2 rounded-full text-sm font-bold shadow-sm transition-all active:scale-95 ${isActive
-                                        ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-orange-200'
-                                        : 'bg-white border-2 border-gray-100 text-gray-600 hover:border-orange-200'
-                                        }`}
-                                >
-                                    {labels[cat]}
-                                </button>
-                            );
-                        })}
+                        {/* 全部按鈕 */}
+                        <button
+                            onClick={() => setCategory('all')}
+                            className={`whitespace-nowrap px-4 sm:px-5 py-2 rounded-full text-sm font-bold shadow-sm transition-all active:scale-95 ${category === 'all'
+                                ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-orange-200'
+                                : 'bg-white border-2 border-gray-100 text-gray-600 hover:border-orange-200'
+                                }`}
+                        >
+                            🍽️ 全部
+                        </button>
+                        {/* 動態分類按鈕 */}
+                        {categories.map(cat => (
+                            <button
+                                key={cat.id}
+                                onClick={() => setCategory(cat.id)}
+                                className={`whitespace-nowrap px-4 sm:px-5 py-2 rounded-full text-sm font-bold shadow-sm transition-all active:scale-95 ${category === cat.id
+                                    ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-orange-200'
+                                    : 'bg-white border-2 border-gray-100 text-gray-600 hover:border-orange-200'
+                                    }`}
+                            >
+                                {cat.icon} {cat.name}
+                            </button>
+                        ))}
                     </div>
                 </div>
 
                 {/* 菜單標題 */}
                 <div className="flex justify-between items-end mt-4 mb-3">
                     <h2 className="text-lg sm:text-xl font-black text-gray-800">
-                        {category === 'all' ? '所有餐點' : category === 'main' ? '飽足主食' : category === 'drink' ? '解渴飲料' : '美味點心'}
+                        {category === 'all' ? '所有餐點' : categories.find(c => c.id === category)?.name || '餐點'}
                         <span className="text-sm font-normal text-gray-400 ml-2">({filteredMenu.length})</span>
                     </h2>
                 </div>

@@ -22,7 +22,7 @@ import {
 import type { DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { db, storage } from './firebase';
-import type { MenuItem, Order, SystemConfig, ApiResponse } from '../types';
+import type { MenuItem, Order, SystemConfig, ApiResponse, CategoryItem } from '../types';
 
 // ============ 取得 Collection 路徑 ============
 
@@ -601,5 +601,51 @@ export async function deleteMenuItemImage(
     } catch (error) {
         console.error('deleteMenuItemImage error:', error);
         return { status: 'error', message: 'Failed to delete image' };
+    }
+}
+
+// ============ 分類 API ============
+
+// 預設分類
+const DEFAULT_CATEGORIES: CategoryItem[] = [
+    { id: 'main', name: '主食', icon: '🍛', order: 1 },
+    { id: 'drink', name: '飲料', icon: '🥤', order: 2 },
+    { id: 'dessert', name: '點心', icon: '🍰', order: 3 }
+];
+
+/**
+ * 取得班級分類列表
+ */
+export async function getClassCategories(classId: string): Promise<ApiResponse<CategoryItem[]>> {
+    try {
+        const configDoc = await getDoc(doc(db, getSystemConfigPath(classId)));
+        if (configDoc.exists() && configDoc.data()?.categories) {
+            const categories = configDoc.data().categories as CategoryItem[];
+            return { status: 'success', data: categories.sort((a, b) => a.order - b.order) };
+        }
+        // 回傳預設分類
+        return { status: 'success', data: DEFAULT_CATEGORIES };
+    } catch (error) {
+        console.error('getClassCategories error:', error);
+        return { status: 'error', message: 'Failed to get categories' };
+    }
+}
+
+/**
+ * 更新班級分類列表
+ */
+export async function updateClassCategories(
+    classId: string,
+    categories: CategoryItem[]
+): Promise<ApiResponse> {
+    try {
+        await setDoc(doc(db, getSystemConfigPath(classId)), {
+            categories,
+            updatedAt: Timestamp.now()
+        }, { merge: true });
+        return { status: 'success' };
+    } catch (error) {
+        console.error('updateClassCategories error:', error);
+        return { status: 'error', message: 'Failed to update categories' };
     }
 }

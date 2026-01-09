@@ -14,14 +14,17 @@ import {
     getAllKitchens,
     uploadMenuItemImage,
     deleteMenuItemImage,
+    getClassCategories,
+    updateClassCategories,
     type Kitchen
 } from '../../services/classApi';
+import type { CategoryItem } from '../../types';
 import { OwnerDashboard } from '../../components/OwnerDashboard';
 import {
     Flame, RefreshCw, Settings, Trash2,
     ChefHat, Package, PieChart, Clock, Plus, Minus,
     DollarSign, ShoppingBag, TrendingUp, LayoutDashboard,
-    ChevronDown, Store, ImagePlus, X, Upload
+    ChevronDown, Store, ImagePlus, X, Upload, Tag
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { Bar, Doughnut } from 'react-chartjs-2';
@@ -37,6 +40,7 @@ export function KitchenApp() {
     const [isShopOpen, setIsShopOpen] = useState(true);
     const [waitTime, setWaitTime] = useState(15);
     const [menuItems, setMenuItems] = useState<any[]>([]);
+    const [categories, setCategories] = useState<CategoryItem[]>([]);
     const [stats, setStats] = useState<any>(null);
     const [localCompletedSet, setLocalCompletedSet] = useState<Set<string>>(new Set());
     const audioRef = useRef<HTMLAudioElement>(null);
@@ -124,6 +128,16 @@ export function KitchenApp() {
         const result = await getClassMenu(currentClassId);
         if (result.status === 'success') {
             setMenuItems(result.data || []);
+        }
+        // 同時載入分類
+        await loadCategories();
+    };
+
+    const loadCategories = async () => {
+        if (!currentClassId) return;
+        const result = await getClassCategories(currentClassId);
+        if (result.status === 'success' && result.data) {
+            setCategories(result.data);
         }
     };
 
@@ -535,15 +549,117 @@ export function KitchenApp() {
                         <div className="flex justify-between items-center mb-4">
                             <h2 className="text-lg font-bold text-gray-300">庫存與菜單</h2>
                             <div className="flex gap-2">
+                                {/* 管理分類按鈕 */}
                                 <button
                                     onClick={async () => {
+                                        // 分類管理介面
+                                        const buildCategoryHtml = (cats: CategoryItem[]) => `
+                                            <div class="text-left max-h-60 overflow-y-auto mb-4">
+                                                ${cats.map((c, i) => `
+                                                    <div class="flex items-center justify-between bg-gray-700 rounded-lg p-2 mb-2">
+                                                        <span>${c.icon} ${c.name}</span>
+                                                        <button class="cat-del text-red-400 hover:text-red-300 text-sm px-2" data-id="${c.id}">刪除</button>
+                                                    </div>
+                                                `).join('')}
+                                            </div>
+                                            <div class="border-t border-gray-600 pt-4">
+                                                <p class="text-sm text-gray-400 mb-2">新增分類</p>
+                                                <div class="flex gap-2">
+                                                    <input id="cat-icon" class="swal2-input w-16 text-center" placeholder="🍔" maxlength="2" style="margin: 0">
+                                                    <input id="cat-name" class="swal2-input flex-1" placeholder="分類名稱" style="margin: 0">
+                                                </div>
+                                            </div>
+                                        `;
+
+                                        let currentCats = [...categories];
+
+                                        const result = await Swal.fire({
+                                            title: '管理分類',
+                                            html: buildCategoryHtml(currentCats),
+                                            showCancelButton: true,
+                                            confirmButtonText: '新增分類',
+                                            cancelButtonText: '關閉',
+                                            confirmButtonColor: '#10b981',
+                                            background: '#1f2937',
+                                            color: '#fff',
+                                            didOpen: () => {
+                                                // 綁定刪除事件
+                                                document.querySelectorAll('.cat-del').forEach(btn => {
+                                                    btn.addEventListener('click', async (e) => {
+                                                        const id = (e.target as HTMLElement).dataset.id;
+                                                        currentCats = currentCats.filter(c => c.id !== id);
+                                                        if (currentClassId) {
+                                                            await updateClassCategories(currentClassId, currentCats);
+                                                            setCategories(currentCats);
+                                                            Swal.update({ html: buildCategoryHtml(currentCats) });
+                                                            // 重新綁定事件
+                                                            document.querySelectorAll('.cat-del').forEach(btn2 => {
+                                                                btn2.addEventListener('click', async (e2) => {
+                                                                    const id2 = (e2.target as HTMLElement).dataset.id;
+                                                                    currentCats = currentCats.filter(c => c.id !== id2);
+                                                                    if (currentClassId) {
+                                                                        await updateClassCategories(currentClassId, currentCats);
+                                                                        setCategories(currentCats);
+                                                                    }
+                                                                });
+                                                            });
+                                                        }
+                                                    });
+                                                });
+                                            },
+                                            preConfirm: () => {
+                                                const icon = (document.getElementById('cat-icon') as HTMLInputElement)?.value || '📦';
+                                                const name = (document.getElementById('cat-name') as HTMLInputElement)?.value;
+                                                if (!name) {
+                                                    Swal.showValidationMessage('請輸入分類名稱');
+                                                    return false;
+                                                }
+                                                return { icon, name };
+                                            }
+                                        });
+
+                                        if (result.isConfirmed && result.value && currentClassId) {
+                                            const newCat: CategoryItem = {
+                                                id: `cat-${Date.now()}`,
+                                                name: result.value.name,
+                                                icon: result.value.icon,
+                                                order: currentCats.length + 1
+                                            };
+                                            const updatedCats = [...currentCats, newCat];
+                                            await updateClassCategories(currentClassId, updatedCats);
+                                            setCategories(updatedCats);
+                                            Swal.fire({
+                                                title: '已新增分類',
+                                                icon: 'success',
+                                                timer: 1500,
+                                                showConfirmButton: false,
+                                                background: '#1f2937',
+                                                color: '#fff'
+                                            });
+                                        }
+                                    }}
+                                    className="bg-purple-600 hover:bg-purple-500 text-white text-sm px-4 py-2 rounded-lg font-bold shadow flex items-center gap-1"
+                                >
+                                    <Tag className="w-4 h-4" />
+                                    分類
+                                </button>
+                                {/* 新增品項按鈕 */}
+                                <button
+                                    onClick={async () => {
+                                        const categoryOptions = categories.map(c =>
+                                            `<option value="${c.id}">${c.icon} ${c.name}</option>`
+                                        ).join('');
+
                                         const { value } = await Swal.fire({
                                             title: '新增品項',
                                             html: `
-                        <input id="s-n" class="swal2-input" placeholder="品名">
-                        <input id="s-p" type="number" class="swal2-input" placeholder="價格">
-                        <input id="s-s" type="number" class="swal2-input" placeholder="庫存">
-                      `,
+                                                <input id="s-n" class="swal2-input" placeholder="品名">
+                                                <input id="s-p" type="number" class="swal2-input" placeholder="價格">
+                                                <input id="s-s" type="number" class="swal2-input" placeholder="庫存">
+                                                <select id="s-c" class="swal2-input">
+                                                    ${categoryOptions}
+                                                </select>
+                                            `,
                                             focusConfirm: false,
                                             background: '#1f2937',
                                             color: '#fff',
@@ -551,10 +667,11 @@ export function KitchenApp() {
                                                 name: (document.getElementById('s-n') as HTMLInputElement).value,
                                                 price: (document.getElementById('s-p') as HTMLInputElement).value,
                                                 stock: (document.getElementById('s-s') as HTMLInputElement).value,
+                                                category: (document.getElementById('s-c') as HTMLSelectElement).value,
                                             }),
                                         });
                                         if (value?.name && value?.price && currentClassId) {
-                                            await addClassMenuItem(currentClassId, value.name, parseInt(value.price), parseInt(value.stock) || 0);
+                                            await addClassMenuItem(currentClassId, value.name, parseInt(value.price), parseInt(value.stock) || 0, value.category || 'main');
                                             loadInventory();
                                         }
                                     }}

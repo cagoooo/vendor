@@ -1,10 +1,18 @@
+// 分類品項
+export interface CategoryItem {
+    id: string;
+    name: string;
+    icon: string;
+    order: number;
+}
+
 // 菜單品項
 export interface MenuItem {
     id: string;
     name: string;
     price: number;
     stock: number;
-    category: 'main' | 'drink' | 'dessert';
+    category: string; // 動態分類 ID (如 'main', 'drink', 'dessert' 或自訂)
     imageUrl?: string;
     isActive: boolean;
 }
