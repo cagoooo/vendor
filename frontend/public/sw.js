@@ -1,17 +1,7 @@
-const CACHE_NAME = 'campus-food-v2';
-const STATIC_ASSETS = [
-    '/',
-    '/index.html',
-    '/manifest.json'
-];
+const CACHE_NAME = 'campus-food-v3';
 
-// Install: Cache static assets
-self.addEventListener('install', (event) => {
-    event.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => {
-            return cache.addAll(STATIC_ASSETS);
-        })
-    );
+// Install: Skip waiting
+self.addEventListener('install', () => {
     self.skipWaiting();
 });
 
