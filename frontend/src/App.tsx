@@ -85,9 +85,12 @@ function AppRoutes() {
   );
 }
 
+// 取得 base path（GitHub Pages 部署時使用 /vendor/）
+const basename = import.meta.env.BASE_URL;
+
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={basename}>
       <AuthProvider>
         <AppRoutes />
       </AuthProvider>
