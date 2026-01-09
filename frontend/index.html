@@ -50,17 +50,47 @@
 
   <div id="root">
     <!-- 靜態內容給 Google 爬蟲 (React 載入後會被覆蓋) -->
-    <div id="static-content" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 40px; text-align: center; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: white; min-height: 100vh;">
+    <div id="static-content"
+      style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 40px; text-align: center; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: white; min-height: 100vh;">
       <h1 style="color: #f97316; font-size: 2.5rem; margin-bottom: 1rem;">🍽️ 校園點餐系統</h1>
-      <p style="color: #a1a1aa; margin: 20px auto; max-width: 500px; line-height: 1.6;">
-        校園點餐系統是專為校慶園遊會設計的線上點餐平台，提供即時叫號、快速取餐等服務，讓您輕鬆享用美食。
-      </p>
+
+      <!-- 應用程式用途說明 - OAuth 驗證必要 -->
+      <div
+        style="max-width: 600px; margin: 0 auto; text-align: left; background: rgba(255,255,255,0.05); border-radius: 16px; padding: 24px; border: 1px solid rgba(255,255,255,0.1);">
+        <h2 style="color: #e4e4e7; font-size: 1.25rem; margin-bottom: 16px;">關於本應用程式</h2>
+        <p style="color: #a1a1aa; line-height: 1.8; margin-bottom: 16px;">
+          <strong style="color: #f97316;">校園點餐系統</strong>是專為校慶園遊會設計的線上點餐平台。本系統提供以下服務：
+        </p>
+        <ul style="color: #a1a1aa; line-height: 2; margin-left: 20px; margin-bottom: 16px;">
+          <li>各班級攤位的餐點瀏覽與線上點餐</li>
+          <li>即時叫號通知，方便快速取餐</li>
+          <li>攤位廚房管理，處理訂單與餐點製作</li>
+        </ul>
+
+        <h3 style="color: #e4e4e7; font-size: 1rem; margin-bottom: 12px;">Google 登入功能</h3>
+        <p style="color: #a1a1aa; line-height: 1.8; margin-bottom: 16px;">
+          本系統使用 <strong style="color: #4285f4;">Google 登入</strong>功能，讓班級工作人員能夠安全地登入廚房管理後台。
+          我們僅會存取您的基本 Google 帳號資訊（姓名、電子郵件、頭像）以識別身分，不會存取您的其他 Google 服務資料。
+        </p>
+
+        <p style="color: #71717a; font-size: 0.875rem;">
+          使用本系統即表示您同意我們的 <a href="./privacy.html" style="color: #f97316;">隱私權政策</a> 與 <a href="./terms.html"
+            style="color: #f97316;">服務條款</a>。
+        </p>
+      </div>
+
       <p style="color: #71717a; font-size: 0.875rem; margin-top: 30px;">載入中...</p>
-      <footer style="position: fixed; bottom: 0; left: 0; right: 0; padding: 20px; background: rgba(0,0,0,0.3); text-align: center;">
-        <a href="./privacy.html" style="color: #f97316; text-decoration: underline; margin: 0 10px;">🔒 隱私權政策</a>
-        <span style="color: #52525b;">|</span>
-        <a href="./terms.html" style="color: #f97316; text-decoration: underline; margin: 0 10px;">📋 服務條款</a>
-        <p style="color: #52525b; font-size: 0.75rem; margin-top: 10px;">© 2026 校園點餐系統. All rights reserved.</p>
+
+      <footer
+        style="position: fixed; bottom: 0; left: 0; right: 0; padding: 20px; background: rgba(0,0,0,0.5); text-align: center; border-top: 1px solid rgba(255,255,255,0.1);">
+        <div style="margin-bottom: 12px;">
+          <a href="./privacy.html"
+            style="color: #f97316; text-decoration: underline; margin: 0 10px; font-weight: bold;">🔒 隱私權政策</a>
+          <span style="color: #52525b;">|</span>
+          <a href="./terms.html"
+            style="color: #f97316; text-decoration: underline; margin: 0 10px; font-weight: bold;">📋 服務條款</a>
+        </div>
+        <p style="color: #52525b; font-size: 0.75rem;">© 2026 校園點餐系統. All rights reserved.</p>
       </footer>
     </div>
   </div>
