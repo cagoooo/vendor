@@ -1,8 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { useClassMenu } from '../../hooks/useClassMenu';
 import { useCartStore, useOrderHistoryStore } from '../../stores';
-import { placeClassOrder } from '../../services/classApi';
+import { placeClassOrder, checkClassOrderStatus } from '../../services/classApi';
 import { MenuCard } from '../../components/order/MenuCard';
 import { CartDrawer } from '../../components/order/CartDrawer';
 import { OrderHistoryModal } from '../../components/order/OrderHistoryModal';
@@ -29,10 +29,63 @@ export function CustomerApp() {
     const [showShare, setShowShare] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // 追蹤「請取餐」訂單數量，用於自動彈出
+    const prevReadyCountRef = useRef(0);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+
     // 生成分享連結
     const shareUrl = typeof window !== 'undefined'
         ? `${window.location.origin}${import.meta.env.BASE_URL}order/${classId}`
         : '';
+
+    // 後台輪詢訂單狀態，當有新的「請取餐」訂單時自動彈出
+    useEffect(() => {
+        const activeOrders = orderHistory.getActiveOrders();
+        if (activeOrders.length === 0) return;
+
+        const pollOrderStatus = async () => {
+            // 按 classId 分組查詢
+            const ordersByClass = new Map<string, string[]>();
+            for (const order of activeOrders) {
+                const cid = order.classId || 'default';
+                if (!ordersByClass.has(cid)) {
+                    ordersByClass.set(cid, []);
+                }
+                ordersByClass.get(cid)!.push(order.id);
+            }
+
+            // 查詢並更新狀態
+            for (const [cid, orderIds] of ordersByClass.entries()) {
+                const result = await checkClassOrderStatus(cid, orderIds);
+                if (result.status === 'success' && result.data) {
+                    Object.entries(result.data).forEach(([orderId, status]) => {
+                        orderHistory.updateOrderStatus(orderId, status);
+                    });
+                }
+            }
+
+            // 檢查是否有新的「請取餐」訂單
+            const currentReadyOrders = orderHistory.getActiveOrders().filter(o => o.status === 'Completed');
+            if (currentReadyOrders.length > prevReadyCountRef.current) {
+                // 有新的請取餐訂單！
+                setShowHistory(true); // 自動打開訂單通知
+
+                // 播放音效
+                if (!audioRef.current) {
+                    audioRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+                }
+                audioRef.current.play().catch(() => { });
+            }
+            prevReadyCountRef.current = currentReadyOrders.length;
+        };
+
+        // 立即執行一次
+        pollOrderStatus();
+
+        // 每 10 秒輪詢一次
+        const interval = setInterval(pollOrderStatus, 10000);
+        return () => clearInterval(interval);
+    }, [orderHistory.orders.length]);
 
     const filteredMenu = useMemo(() => {
         return menuItems.filter(item => {
