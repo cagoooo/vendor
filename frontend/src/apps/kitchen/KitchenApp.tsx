@@ -287,29 +287,35 @@ export function KitchenApp() {
                             </div>
                         )}
 
-                        {/* 營業狀態 */}
-                        <div className="flex items-center gap-2 bg-gray-700 rounded-full px-3 py-1.5">
-                            <button
-                                onClick={handleToggleShop}
-                                className={`w-10 h-5 rounded-full relative transition ${isShopOpen ? 'bg-green-500' : 'bg-gray-600'}`}
-                            >
-                                <span className={`absolute w-4 h-4 bg-white rounded-full top-0.5 transition ${isShopOpen ? 'right-0.5' : 'left-0.5'}`} />
-                            </button>
-                            <span className={`text-xs font-bold ${isShopOpen ? 'text-green-400' : 'text-gray-400'}`}>
-                                {isShopOpen ? '營業中' : '已暫停'}
+                        {/* 營業狀態 - 美化版 */}
+                        <button
+                            onClick={handleToggleShop}
+                            className={`flex items-center gap-3 rounded-xl px-4 py-2.5 transition-all shadow-lg ${isShopOpen
+                                    ? 'bg-gradient-to-r from-green-600 to-emerald-500 shadow-green-900/30'
+                                    : 'bg-gradient-to-r from-gray-600 to-gray-500 shadow-gray-900/30'
+                                }`}
+                        >
+                            <div className={`relative w-12 h-7 rounded-full transition-all ${isShopOpen ? 'bg-green-400/30' : 'bg-gray-700'}`}>
+                                <span className={`absolute w-5 h-5 bg-white rounded-full top-1 transition-all shadow-md ${isShopOpen ? 'right-1' : 'left-1'}`} />
+                            </div>
+                            <span className="text-white font-bold text-sm lg:text-base">
+                                {isShopOpen ? '🟢 營業中' : '⏸️ 已暫停'}
                             </span>
-                        </div>
+                        </button>
 
-                        {/* 等待時間 */}
-                        <div className="flex items-center gap-1 bg-gray-700 px-2 py-1 rounded-lg">
-                            <Clock className="w-4 h-4 text-gray-500" />
+                        {/* 等待時間 - 美化版 */}
+                        <div className="flex items-center gap-2 bg-gradient-to-r from-gray-700 to-gray-600 px-4 py-2.5 rounded-xl shadow-lg">
+                            <Clock className="w-5 h-5 text-orange-400" />
+                            <span className="text-gray-400 text-sm">預計</span>
                             <input
                                 type="number"
                                 value={waitTime}
                                 onChange={e => handleWaitTimeChange(parseInt(e.target.value) || 15)}
-                                className="bg-transparent w-8 text-center text-white text-xs font-bold focus:outline-none"
+                                className="bg-gray-800 w-14 text-center text-white text-lg font-bold rounded-lg py-1 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                min={1}
+                                max={120}
                             />
-                            <span className="text-xs text-gray-500">分</span>
+                            <span className="text-white font-bold text-sm lg:text-base">分鐘</span>
                         </div>
                     </div>
 
