@@ -6,7 +6,8 @@ import { placeClassOrder } from '../../services/classApi';
 import { MenuCard } from '../../components/order/MenuCard';
 import { CartDrawer } from '../../components/order/CartDrawer';
 import { OrderHistoryModal } from '../../components/order/OrderHistoryModal';
-import { ShoppingCart, Receipt, Clock, Loader2, Store, Search, Utensils } from 'lucide-react';
+import { ShareModal } from '../../components/share/ShareModal';
+import { ShoppingCart, Receipt, Clock, Loader2, Store, Search, Utensils, QrCode } from 'lucide-react';
 import Swal from 'sweetalert2';
 
 type Category = 'all' | 'main' | 'drink' | 'dessert';
@@ -25,7 +26,13 @@ export function CustomerApp() {
     const [searchQuery, setSearchQuery] = useState('');
     const [showCart, setShowCart] = useState(false);
     const [showHistory, setShowHistory] = useState(false);
+    const [showShare, setShowShare] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // 生成分享連結
+    const shareUrl = typeof window !== 'undefined'
+        ? `${window.location.origin}${import.meta.env.BASE_URL}order/${classId}`
+        : '';
 
     const filteredMenu = useMemo(() => {
         return menuItems.filter(item => {
@@ -233,21 +240,33 @@ export function CustomerApp() {
                 </div>
             </div>
 
-            {/* 訂單追蹤按鈕 */}
-            <button
-                onClick={() => setShowHistory(true)}
-                className="fixed top-3 right-3 sm:top-4 sm:right-4 z-40 bg-white/95 backdrop-blur-md text-gray-800 pl-3 pr-4 py-2.5 rounded-full shadow-lg border border-gray-200/50 font-bold text-sm flex items-center gap-2 transition-all hover:shadow-xl hover:scale-105 active:scale-95"
-            >
-                <div className="relative">
-                    <Receipt className="w-5 h-5 text-orange-500" />
-                    {activeOrderCount > 0 && (
-                        <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-bold animate-pulse">
-                            {activeOrderCount}
-                        </span>
-                    )}
-                </div>
-                <span className="hidden sm:inline">我的訂單</span>
-            </button>
+            {/* 右上角按鈕組 */}
+            <div className="fixed top-3 right-3 sm:top-4 sm:right-4 z-40 flex items-center gap-2">
+                {/* 分享按鈕 */}
+                <button
+                    onClick={() => setShowShare(true)}
+                    className="bg-gradient-to-r from-orange-500 to-red-500 text-white p-2.5 rounded-full shadow-lg transition-all hover:shadow-xl hover:scale-105 active:scale-95"
+                    title="分享點餐連結"
+                >
+                    <QrCode className="w-5 h-5" />
+                </button>
+
+                {/* 訂單追蹤按鈕 */}
+                <button
+                    onClick={() => setShowHistory(true)}
+                    className="bg-white/95 backdrop-blur-md text-gray-800 pl-3 pr-4 py-2.5 rounded-full shadow-lg border border-gray-200/50 font-bold text-sm flex items-center gap-2 transition-all hover:shadow-xl hover:scale-105 active:scale-95"
+                >
+                    <div className="relative">
+                        <Receipt className="w-5 h-5 text-orange-500" />
+                        {activeOrderCount > 0 && (
+                            <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-bold animate-pulse">
+                                {activeOrderCount}
+                            </span>
+                        )}
+                    </div>
+                    <span className="hidden sm:inline">我的訂單</span>
+                </button>
+            </div>
 
             {/* 主內容區 */}
             <div className="max-w-4xl mx-auto px-3 sm:px-4 lg:px-6">
@@ -409,6 +428,7 @@ export function CustomerApp() {
 
             {showCart && <CartDrawer onClose={() => setShowCart(false)} />}
             {showHistory && <OrderHistoryModal onClose={() => setShowHistory(false)} />}
+            {showShare && <ShareModal shareUrl={shareUrl} title="🍽️ 校園點餐系統" onClose={() => setShowShare(false)} />}
 
             {/* 快速連結按鈕群 */}
             <div className="fixed bottom-24 left-4 flex flex-col gap-2 z-30">
