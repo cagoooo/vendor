@@ -131,37 +131,48 @@ export function ShareModal({ shareUrl, title = '校園點餐系統', onClose }: 
 
                 {/* Share Buttons */}
                 <div className="px-6 pb-6 space-y-3">
-                    {/* 主要分享按鈕 */}
-                    <div className="grid grid-cols-3 gap-3">
+                    {/* 主要分享按鈕 - 2列佈局 */}
+                    <div className="grid grid-cols-2 gap-3">
                         <button
                             onClick={shareToLine}
-                            className="flex flex-col items-center gap-1.5 p-4 rounded-2xl bg-[#06C755] hover:bg-[#05b54d] text-white transition active:scale-95"
+                            className="flex items-center justify-center gap-2 p-4 rounded-2xl bg-[#06C755] hover:bg-[#05b54d] text-white transition active:scale-95"
                         >
-                            <MessageCircle className="w-7 h-7" />
-                            <span className="text-xs font-bold">LINE</span>
+                            <MessageCircle className="w-6 h-6" />
+                            <span className="font-bold">LINE</span>
                         </button>
                         <button
                             onClick={shareToFacebook}
-                            className="flex flex-col items-center gap-1.5 p-4 rounded-2xl bg-[#1877F2] hover:bg-[#166fe5] text-white transition active:scale-95"
+                            className="flex items-center justify-center gap-2 p-4 rounded-2xl bg-[#1877F2] hover:bg-[#166fe5] text-white transition active:scale-95"
                         >
-                            <Facebook className="w-7 h-7" />
-                            <span className="text-xs font-bold">Facebook</span>
+                            <Facebook className="w-6 h-6" />
+                            <span className="font-bold">Facebook</span>
                         </button>
-                        {'share' in navigator ? (
+                        <button
+                            onClick={downloadQRCode}
+                            className="flex items-center justify-center gap-2 p-4 rounded-2xl bg-purple-600 hover:bg-purple-500 text-white transition active:scale-95"
+                        >
+                            <Download className="w-6 h-6" />
+                            <span className="font-bold">下載 QR</span>
+                        </button>
+                        {/* 只在移動設備上顯示更多分享 */}
+                        {/Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ? (
                             <button
                                 onClick={handleNativeShare}
-                                className="flex flex-col items-center gap-1.5 p-4 rounded-2xl bg-gray-800 hover:bg-gray-700 text-white transition active:scale-95"
+                                className="flex items-center justify-center gap-2 p-4 rounded-2xl bg-gray-800 hover:bg-gray-700 text-white transition active:scale-95"
                             >
-                                <Share2 className="w-7 h-7" />
-                                <span className="text-xs font-bold">更多</span>
+                                <Share2 className="w-6 h-6" />
+                                <span className="font-bold">更多</span>
                             </button>
                         ) : (
                             <button
-                                onClick={downloadQRCode}
-                                className="flex flex-col items-center gap-1.5 p-4 rounded-2xl bg-gray-800 hover:bg-gray-700 text-white transition active:scale-95"
+                                onClick={handleCopyLink}
+                                className={`flex items-center justify-center gap-2 p-4 rounded-2xl transition active:scale-95 ${copied
+                                        ? 'bg-green-500 text-white'
+                                        : 'bg-gray-800 hover:bg-gray-700 text-white'
+                                    }`}
                             >
-                                <Download className="w-7 h-7" />
-                                <span className="text-xs font-bold">下載</span>
+                                {copied ? <Check className="w-6 h-6" /> : <Link2 className="w-6 h-6" />}
+                                <span className="font-bold">{copied ? '已複製' : '複製'}</span>
                             </button>
                         )}
                     </div>
