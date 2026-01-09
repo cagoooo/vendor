@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useClassOrders } from '../../hooks/useClassOrders';
 import { useAuth } from '../../contexts/AuthContext';
 import {
@@ -44,6 +44,7 @@ export function KitchenApp() {
     const [kitchens, setKitchens] = useState<Kitchen[]>([]);
     const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
     const [showClassDropdown, setShowClassDropdown] = useState(false);
+    const [searchParams] = useSearchParams();
 
     // 實際使用的 classId：owner 可以切換，其他人使用自己的班級
     const currentClassId = isOwner ? (selectedClassId || authClassId) : authClassId;
@@ -55,12 +56,21 @@ export function KitchenApp() {
         }
     }, [isOwner]);
 
+    // 從 URL 參數設定初始班級
+    useEffect(() => {
+        const classFromUrl = searchParams.get('class');
+        if (isOwner && classFromUrl) {
+            setSelectedClassId(classFromUrl);
+        }
+    }, [isOwner, searchParams]);
+
     const loadKitchens = async () => {
         const result = await getAllKitchens();
         if (result.status === 'success' && result.data) {
             setKitchens(result.data);
-            // 如果還沒選擇班級，預設選第一個
-            if (!selectedClassId && result.data.length > 0) {
+            // 如果還沒選擇班級且 URL 沒有指定，預設選第一個
+            const classFromUrl = searchParams.get('class');
+            if (!selectedClassId && !classFromUrl && result.data.length > 0) {
                 setSelectedClassId(result.data[0].classId);
             }
         }

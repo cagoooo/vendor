@@ -428,16 +428,17 @@ export function AdminApp() {
                                 ) : (
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                         {kitchens.map(kitchen => (
-                                            <div
+                                            <Link
                                                 key={kitchen.classId}
-                                                className="bg-gray-800 rounded-xl p-4 border border-gray-700 shadow-lg hover:border-blue-500/50 transition"
+                                                to={`/kitchen?class=${kitchen.classId}`}
+                                                className="bg-gray-800 rounded-xl p-4 border border-gray-700 shadow-lg hover:border-blue-500/50 hover:bg-gray-750 transition group cursor-pointer"
                                             >
                                                 <div className="flex items-center gap-3 mb-3">
-                                                    <div className="w-12 h-12 rounded-xl bg-blue-600/20 flex items-center justify-center">
+                                                    <div className="w-12 h-12 rounded-xl bg-blue-600/20 flex items-center justify-center group-hover:bg-blue-600/30 transition">
                                                         <ChefHat className="w-6 h-6 text-blue-400" />
                                                     </div>
                                                     <div>
-                                                        <h3 className="font-bold text-white text-lg">{kitchen.className}</h3>
+                                                        <h3 className="font-bold text-white text-lg group-hover:text-blue-400 transition">{kitchen.className}</h3>
                                                         <p className="text-xs text-gray-500 font-mono">{kitchen.classId}</p>
                                                     </div>
                                                 </div>
@@ -449,7 +450,11 @@ export function AdminApp() {
                                                         </p>
                                                     )}
                                                 </div>
-                                            </div>
+                                                <div className="mt-3 pt-3 border-t border-gray-700 text-xs text-blue-400 opacity-0 group-hover:opacity-100 transition flex items-center gap-1">
+                                                    <ChefHat className="w-3 h-3" />
+                                                    點擊進入廚房管理
+                                                </div>
+                                            </Link>
                                         ))}
                                     </div>
                                 )}
