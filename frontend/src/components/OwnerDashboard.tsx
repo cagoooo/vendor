@@ -20,6 +20,19 @@ interface OwnerDashboardProps {
     // Props 保留擴充彈性
 }
 
+// 班級統計資料的品項排名
+interface RankingItem {
+    name: string;
+    qty: number;
+}
+
+// 班級統計資料結構
+interface ClassStats {
+    revenue: number;
+    orderCount: number;
+    ranking: RankingItem[];
+}
+
 export function OwnerDashboard(_props: OwnerDashboardProps) {
     const [stats, setStats] = useState<AllKitchensStats | null>(null);
     const [loading, setLoading] = useState(true);
@@ -27,7 +40,7 @@ export function OwnerDashboard(_props: OwnerDashboardProps) {
 
     // 單一班級戰情視圖
     const [selectedKitchen, setSelectedKitchen] = useState<KitchenStats | null>(null);
-    const [classStats, setClassStats] = useState<any>(null);
+    const [classStats, setClassStats] = useState<ClassStats | null>(null);
     const [loadingClassStats, setLoadingClassStats] = useState(false);
 
     const loadStats = async () => {
@@ -173,9 +186,9 @@ export function OwnerDashboard(_props: OwnerDashboardProps) {
                                 <div className="h-64 md:h-72">
                                     <Bar
                                         data={{
-                                            labels: classStats.ranking.slice(0, 10).map((i: any) => i.name),
+                                            labels: classStats.ranking.slice(0, 10).map((i) => i.name),
                                             datasets: [{
-                                                data: classStats.ranking.slice(0, 10).map((i: any) => i.qty),
+                                                data: classStats.ranking.slice(0, 10).map((i) => i.qty),
                                                 backgroundColor: 'rgba(249, 115, 22, 0.7)',
                                                 borderRadius: 4,
                                             }],
@@ -197,9 +210,9 @@ export function OwnerDashboard(_props: OwnerDashboardProps) {
                                 <div className="h-64">
                                     <Doughnut
                                         data={{
-                                            labels: classStats.ranking.slice(0, 5).map((i: any) => i.name),
+                                            labels: classStats.ranking.slice(0, 5).map((i) => i.name),
                                             datasets: [{
-                                                data: classStats.ranking.slice(0, 5).map((i: any) => i.qty),
+                                                data: classStats.ranking.slice(0, 5).map((i) => i.qty),
                                                 backgroundColor: ['#f97316', '#3b82f6', '#10b981', '#a855f7', '#ec4899'],
                                                 borderWidth: 0,
                                             }],
@@ -235,8 +248,8 @@ export function OwnerDashboard(_props: OwnerDashboardProps) {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {classStats.ranking.map((item: any, idx: number) => {
-                                        const total = classStats.ranking.reduce((a: number, c: any) => a + c.qty, 0);
+                                    {classStats.ranking.map((item, idx) => {
+                                        const total = classStats.ranking.reduce((a, c) => a + c.qty, 0);
                                         return (
                                             <tr key={idx} className="border-b border-gray-700 hover:bg-gray-700/50">
                                                 <td className="px-6 py-4 font-mono text-gray-500">#{idx + 1}</td>

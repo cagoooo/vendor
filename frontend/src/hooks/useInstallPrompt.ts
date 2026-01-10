@@ -1,5 +1,15 @@
 import { useState, useEffect } from 'react';
 
+// 擴展全域類型以支援 PWA 相關屬性
+declare global {
+    interface Window {
+        MSStream?: unknown;
+    }
+    interface Navigator {
+        standalone?: boolean;
+    }
+}
+
 interface BeforeInstallPromptEvent extends Event {
     prompt: () => Promise<void>;
     userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
@@ -27,13 +37,13 @@ export function useInstallPrompt(): UseInstallPromptReturn {
     const [isDismissed, setIsDismissed] = useState(false);
 
     // 檢查是否為 iOS
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
     // 檢查是否已安裝
     useEffect(() => {
         // 檢查 display-mode
         const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-        const isInWebAppiOS = (navigator as any).standalone === true;
+        const isInWebAppiOS = navigator.standalone === true;
         setIsInstalled(isStandalone || isInWebAppiOS);
 
         // 檢查是否已經關閉過提示

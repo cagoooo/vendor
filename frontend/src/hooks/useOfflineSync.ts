@@ -200,7 +200,9 @@ export function useOfflineSync() {
  * 根據 action.type 呼叫對應的 API
  */
 async function executeAction(action: PendingAction): Promise<void> {
-    console.log('Executing offline action:', action.type, action.payload);
+    if (import.meta.env.DEV) {
+        console.log('Executing offline action:', action.type, action.payload);
+    }
 
     switch (action.type) {
         case ACTION_TYPES.PLACE_ORDER: {

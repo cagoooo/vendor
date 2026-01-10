@@ -36,7 +36,9 @@ class NotificationSoundService {
             // 嘗試使用本地音效，失敗則使用遠端備援
             this.audio = new Audio(DEFAULT_SOUND_URL);
             this.audio.addEventListener('error', () => {
-                console.log('Local sound failed, using fallback URL');
+                if (import.meta.env.DEV) {
+                    console.log('Local sound failed, using fallback URL');
+                }
                 if (this.audio) {
                     this.audio.src = FALLBACK_SOUND_URL;
                 }
@@ -96,7 +98,9 @@ class NotificationSoundService {
             this.audio.volume = this.settings.volume;
             this.audio.play().catch(error => {
                 // 自動播放可能被瀏覽器封鎖
-                console.log('Sound playback blocked:', error.message);
+                if (import.meta.env.DEV) {
+                    console.log('Sound playback blocked:', error.message);
+                }
             });
         }
     }

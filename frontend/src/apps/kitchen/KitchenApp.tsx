@@ -15,7 +15,7 @@ import {
 } from '../../services/classApi';
 import type { CategoryItem } from '../../types';
 import type { Tab } from './types';
-import { OrderList, KitchenHeader, InventoryPanel, StatsPanel } from './components';
+import { VirtualOrderList, KitchenHeader, InventoryPanel, StatsPanel } from './components';
 import { OwnerDashboard } from '../../components/OwnerDashboard';
 import { notificationSound } from '../../services/notificationSound';
 import Swal from 'sweetalert2';
@@ -253,7 +253,7 @@ export function KitchenApp() {
             <main className="p-4 md:p-6 max-w-7xl mx-auto pb-24">
                 {/* Orders Tab */}
                 {activeTab === 'orders' && (
-                    <OrderList
+                    <VirtualOrderList
                         orders={filteredOrders}
                         onRefetch={refetch}
                         onStatusUpdate={handleStatusUpdate}
