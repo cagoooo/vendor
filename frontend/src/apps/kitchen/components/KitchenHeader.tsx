@@ -3,6 +3,7 @@ import type { Kitchen } from '../../../services/classApi';
 import type { Tab } from '../types';
 import { ClassSelector } from './ClassSelector';
 import { LayoutDashboard, ChefHat, Package, PieChart } from 'lucide-react';
+import { notificationSound } from '../../../services/notificationSound';
 import Swal from 'sweetalert2';
 
 export interface KitchenHeaderProps {
@@ -49,10 +50,12 @@ export function KitchenHeader({
 }: KitchenHeaderProps) {
 
     const handleOpenSettings = () => {
+        const soundSettings = notificationSound.getSettings();
+
         Swal.fire({
             title: '設定',
             html: `
-                <div class="space-y-3 text-left">
+                <div class="space-y-4 text-left">
                     ${profile ? `
                     <div class="flex items-center gap-3 bg-gray-700 rounded-lg p-3 mb-4">
                         ${profile.photoURL ? `<img src="${profile.photoURL}" class="w-10 h-10 rounded-full" />` : `<div class="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center font-bold text-white">${profile.name?.charAt(0) || 'U'}</div>`}
@@ -62,6 +65,36 @@ export function KitchenHeader({
                         </div>
                     </div>
                     ` : ''}
+                    
+                    <!-- 音效設定區塊 -->
+                    <div class="bg-gray-700 rounded-lg p-4 mb-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-white font-bold flex items-center gap-2">
+                                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                                </svg>
+                                訂單音效通知
+                            </span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="sound-toggle" class="sr-only peer" ${soundSettings.enabled ? 'checked' : ''}>
+                                <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
+                            </label>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <svg class="w-4 h-4 text-gray-400 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                            </svg>
+                            <input type="range" id="sound-volume" min="0" max="100" value="${Math.round(soundSettings.volume * 100)}" 
+                                class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-orange-500">
+                            <span id="volume-label" class="text-white text-sm w-10 text-right">${Math.round(soundSettings.volume * 100)}%</span>
+                        </div>
+                        <button id="test-sound-btn" class="mt-3 w-full bg-gray-600 hover:bg-gray-500 text-white text-sm py-2 px-4 rounded-lg transition flex items-center justify-center gap-2">
+                            🔔 測試音效
+                        </button>
+                    </div>
+                    
                     ${isOwner ? `
                     <a href="#/admin" class="block w-full bg-gradient-to-r from-purple-600 to-pink-500 text-white font-bold py-3 px-4 rounded-lg text-center">
                         🔧 管理中心
@@ -80,10 +113,35 @@ export function KitchenHeader({
             background: '#1f2937',
             color: '#fff',
             didOpen: () => {
+                // 音效開關
+                const soundToggle = document.getElementById('sound-toggle') as HTMLInputElement;
+                soundToggle?.addEventListener('change', (e) => {
+                    notificationSound.setEnabled((e.target as HTMLInputElement).checked);
+                });
+
+                // 音量控制
+                const volumeSlider = document.getElementById('sound-volume') as HTMLInputElement;
+                const volumeLabel = document.getElementById('volume-label');
+                volumeSlider?.addEventListener('input', (e) => {
+                    const value = parseInt((e.target as HTMLInputElement).value) / 100;
+                    notificationSound.setVolume(value);
+                    if (volumeLabel) {
+                        volumeLabel.textContent = `${Math.round(value * 100)}%`;
+                    }
+                });
+
+                // 測試音效
+                document.getElementById('test-sound-btn')?.addEventListener('click', () => {
+                    notificationSound.playTest();
+                });
+
+                // 清除資料
                 document.getElementById('clear-btn')?.addEventListener('click', () => {
                     Swal.close();
                     onClearAll();
                 });
+
+                // 登出
                 document.getElementById('logout-btn')?.addEventListener('click', () => {
                     Swal.close();
                     onLogout();
@@ -119,8 +177,8 @@ export function KitchenHeader({
                         <button
                             onClick={onToggleShop}
                             className={`flex items-center gap-1.5 md:gap-3 rounded-lg md:rounded-xl px-2.5 py-2 md:px-4 md:py-2.5 transition-all shadow-lg ${isShopOpen
-                                    ? 'bg-gradient-to-r from-green-600 to-emerald-500 shadow-green-900/30'
-                                    : 'bg-gradient-to-r from-gray-600 to-gray-500 shadow-gray-900/30'
+                                ? 'bg-gradient-to-r from-green-600 to-emerald-500 shadow-green-900/30'
+                                : 'bg-gradient-to-r from-gray-600 to-gray-500 shadow-gray-900/30'
                                 }`}
                         >
                             <div className={`relative w-9 h-5 md:w-12 md:h-7 rounded-full transition-all ${isShopOpen ? 'bg-green-400/30' : 'bg-gray-700'}`}>
@@ -163,8 +221,8 @@ export function KitchenHeader({
                             <button
                                 onClick={() => onTabChange('dashboard')}
                                 className={`px-3 py-2 md:px-4 rounded-md font-bold text-xs md:text-sm flex items-center gap-1.5 md:gap-2 transition whitespace-nowrap ${activeTab === 'dashboard'
-                                        ? 'bg-gradient-to-r from-purple-600 to-pink-500 text-white shadow-lg'
-                                        : 'text-gray-400 hover:text-white'
+                                    ? 'bg-gradient-to-r from-purple-600 to-pink-500 text-white shadow-lg'
+                                    : 'text-gray-400 hover:text-white'
                                     }`}
                             >
                                 <LayoutDashboard className="w-4 h-4" />
@@ -174,8 +232,8 @@ export function KitchenHeader({
                         <button
                             onClick={() => onTabChange('orders')}
                             className={`px-3 py-2 md:px-4 rounded-md font-bold text-xs md:text-sm flex items-center gap-1.5 md:gap-2 transition whitespace-nowrap ${activeTab === 'orders'
-                                    ? 'bg-orange-600 text-white shadow-lg'
-                                    : 'text-gray-400 hover:text-white'
+                                ? 'bg-orange-600 text-white shadow-lg'
+                                : 'text-gray-400 hover:text-white'
                                 }`}
                         >
                             <ChefHat className="w-4 h-4" />
@@ -184,8 +242,8 @@ export function KitchenHeader({
                         <button
                             onClick={() => onTabChange('inventory')}
                             className={`px-3 py-2 md:px-4 rounded-md font-bold text-xs md:text-sm flex items-center gap-1.5 md:gap-2 transition whitespace-nowrap ${activeTab === 'inventory'
-                                    ? 'bg-blue-600 text-white shadow-lg'
-                                    : 'text-gray-400 hover:text-white'
+                                ? 'bg-blue-600 text-white shadow-lg'
+                                : 'text-gray-400 hover:text-white'
                                 }`}
                         >
                             <Package className="w-4 h-4" />
@@ -194,8 +252,8 @@ export function KitchenHeader({
                         <button
                             onClick={() => onTabChange('stats')}
                             className={`px-3 py-2 md:px-4 rounded-md font-bold text-xs md:text-sm flex items-center gap-1.5 md:gap-2 transition whitespace-nowrap ${activeTab === 'stats'
-                                    ? 'bg-emerald-600 text-white shadow-lg'
-                                    : 'text-gray-400 hover:text-white'
+                                ? 'bg-emerald-600 text-white shadow-lg'
+                                : 'text-gray-400 hover:text-white'
                                 }`}
                         >
                             <PieChart className="w-4 h-4" />
