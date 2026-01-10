@@ -43,7 +43,7 @@
 |-----|------|------|
 | API 統一化 | ✅ | 標記舊版 api.ts、useMenu.ts、useOrders.ts 為 @deprecated |
 | 離線同步完善 | ✅ | 實作 executeAction，整合到 CustomerApp |
-| KitchenApp 組件拆分 | 🔄 | 新增 ClassSelector.tsx、KitchenHeader.tsx |
+| KitchenApp 組件拆分 | ✅ | 新增 ClassSelector、KitchenHeader，減少 152 行 |
 | 庫存低量警示 | ✅ | 新增 LowStockAlert.tsx 組件 |
 | 音效通知優化 | ✅ | 新增 notificationSound.ts 服務 |
 | AdminApp 班級管理 | ✅ | 新增/編輯/刪除班級功能、updateKitchen、deleteKitchen API |
@@ -106,15 +106,21 @@ npm run test:coverage  # 覆蓋率報告
 ### Phase 6：短期優先（本週）
 - [x] 離線同步完善
 - [x] API 統一化
-- [ ] KitchenApp 拆分完成
+- [x] KitchenApp 組件拆分 (基礎完成)
+- [x] 庫存低量警示
+- [x] 音效通知服務
+- [x] AdminApp 班級管理
+- [ ] 音效設定 UI
+- [ ] 舊 API 完全移除
 
-### Phase 6：兩週內
-- [ ] 庫存低量警示
-- [ ] 音效通知優化
-- [ ] AdminApp 班級管理（新增/編輯/刪除）
+### Phase 7：中期功能（兩週內）
+- [ ] E2E 自動化測試 (Playwright)
+- [ ] KitchenApp 進一步拆分 (InventoryPanel, StatsPanel)
+- [ ] Rate Limiting
 
-### Phase 7：長期功能
+### Phase 8：長期功能
 - [ ] 多語言支援 (i18n)
+- [ ] PWA 完整支援
 - [ ] 進階權限系統
 - [ ] 行銷功能（優惠券、集點）
 
