@@ -1,129 +1,136 @@
 # 🚀 校園點餐系統 未來優化與開發建議
 
-> **更新日期：2026-01-10**  
-> **當前版本：v3.3.1**  
+> **更新日期：2026-01-10 16:37**  
+> **當前版本：v3.3.2**  
 > **參考文件：DEVELOPMENT_ROADMAP.md**
 
 ---
 
 ## 📊 目前進度總覽
 
-### ✅ 已完成 (v3.1.1 - v3.3.1)
+### ✅ 已完成 (v3.1.1 - v3.3.2)
 
 | 版本 | 功能 | 狀態 |
 |------|------|------|
 | v3.1.1 | 安全性與穩定性 | ✅ Firestore 規則、Transaction、ErrorBoundary |
 | v3.1.2 | 程式碼架構 | ✅ OrderCard/OrderList 拆分、API 統一入口 |
 | v3.2.0 | 效能優化 | ✅ React.memo、Code Splitting |
-| v3.3.0 | Phase 4-5 | ✅ 訂單追蹤、進階報表、離線支援、自動化測試 |
-| v3.3.1 | 優化改進 | ✅ API 統一化、離線同步、KitchenApp 重構、AdminApp 班級管理 |
+| v3.3.0 | Phase 4-5 | ✅ 訂單追蹤、進階報表、離線支援、Vitest 測試 |
+| v3.3.1 | Phase 6 前半 | ✅ API 統一化、離線同步、AdminApp 班級管理 |
+| v3.3.2 | Phase 6 完成 | ✅ KitchenApp 重構(-67%)、音效設定 UI、E2E 框架 |
+
+### 📈 程式碼精簡成果
+
+| 指標 | 改善 |
+|------|------|
+| KitchenApp.tsx | 930 行 → **259 行** (**-72%**) |
+| 舊 API 移除 | 刪除 api.ts, useMenu.ts, useOrders.ts |
+| 新增組件 | InventoryPanel, StatsPanel, KitchenHeader, ClassSelector |
 
 ---
 
-## 🎯 Phase 6：下一步開發 (1-2 週)
+## 🎯 Phase 7：下一步建議 (1-2 週)
 
-### 6.1 完成 KitchenApp 拆分 🏗️
+### 7.1 執行 E2E 測試 🧪
 
-**目前狀態：** 已完成 KitchenHeader、ClassSelector，程式碼從 930 行減至 778 行
+**已完成的設置：**
+- ✅ Playwright 配置 (`playwright.config.ts`)
+- ✅ 測試檔案 (`customer-order.spec.ts`, `kitchen-management.spec.ts`)
+- ✅ npm 指令 (`test:e2e`, `test:e2e:ui`)
 
-**剩餘目標：** 進一步拆分至約 400 行
-
-| 組件 | 說明 | 優先級 |
-|------|------|--------|
-| `InventoryPanel.tsx` | 庫存管理面板 | 🔴 高 |
-| `StatsPanel.tsx` | 統計圖表面板 | 🔴 高 |
-| `CategoryManager.tsx` | 分類管理 Modal | 🟡 中 |
-| `MenuItemEditor.tsx` | 菜單品項編輯器 | 🟡 中 |
-
-**預估可減少行數：** ~300 行
-
----
-
-### 6.2 音效設定 UI 🔊
-
-**目前狀態：** `notificationSound.ts` 服務已完成，支援音量控制和開關
-
-**需新增：**
-
-```tsx
-// components/SoundSettingsPanel.tsx
-function SoundSettingsPanel() {
-    const [enabled, setEnabled] = useState(notificationSound.isEnabled());
-    const [volume, setVolume] = useState(notificationSound.getVolume());
-    
-    return (
-        <div>
-            <label>
-                <input type="checkbox" checked={enabled} 
-                       onChange={(e) => {
-                           setEnabled(e.target.checked);
-                           notificationSound.setEnabled(e.target.checked);
-                       }} />
-                啟用音效通知
-            </label>
-            <input type="range" min="0" max="1" step="0.1" 
-                   value={volume}
-                   onChange={(e) => {
-                       setVolume(parseFloat(e.target.value));
-                       notificationSound.setVolume(parseFloat(e.target.value));
-                   }} />
-            <button onClick={() => notificationSound.playTest()}>測試</button>
-        </div>
-    );
-}
-```
-
-**整合位置：** KitchenApp → 設定 Modal
-
----
-
-### 6.3 舊 API 完全移除 🧹
-
-**目前狀態：** 已標記 `@deprecated`
-
-**移除步驟：**
-
-1. 確認無任何引用 `api.ts` 的 import
-2. 確認 `useMenu.ts` 和 `useOrders.ts` 無使用
-3. 刪除上述三個檔案
-4. 更新 `hooks/index.ts` 移除 export
-
-**預估節省：** ~400 行程式碼
-
----
-
-## 🟠 Phase 7：中期功能 (2-4 週)
-
-### 7.1 E2E 自動化測試 🧪
-
-**推薦工具：** Playwright
+**下一步：**
 
 ```bash
-npm install -D @playwright/test
+# 安裝瀏覽器（首次執行需要）
 npx playwright install
+
+# 執行測試
+npm run test:e2e
+
+# 開啟 UI 模式
+npm run test:e2e:ui
 ```
 
-**核心測試案例：**
+**擴充測試案例：**
 
-| 測試 | 說明 |
-|------|------|
-| `customer-order.spec.ts` | 點餐 → 加入購物車 → 結帳 |
-| `kitchen-management.spec.ts` | 接單 → 準備中 → 完成 → 付款 |
-| `admin-user.spec.ts` | 用戶審核流程 |
-| `offline-sync.spec.ts` | 離線下單 → 上線同步 |
-
-**目標覆蓋率：** > 70%
+| 測試 | 優先級 | 說明 |
+|------|--------|------|
+| 離線操作測試 | 🔴 高 | 模擬網路斷線後下單 |
+| 訂單追蹤測試 | 🟡 中 | 驗證即時狀態更新 |
+| 管理員功能測試 | 🟡 中 | 班級管理 CRUD |
 
 ---
 
-### 7.2 多語言支援 (i18n) 🌍
+### 7.2 Rate Limiting 安全防護 �️
+
+**問題：** 目前無 API 請求頻率限制
+
+**解決方案：**
+
+```typescript
+// services/rateLimiter.ts
+class RateLimiter {
+    private requests: Map<string, number[]> = new Map();
+    
+    canProceed(key: string, limit: number, windowMs: number): boolean {
+        const now = Date.now();
+        const timestamps = this.requests.get(key) || [];
+        const validTimestamps = timestamps.filter(t => now - t < windowMs);
+        
+        if (validTimestamps.length >= limit) {
+            return false;
+        }
+        
+        validTimestamps.push(now);
+        this.requests.set(key, validTimestamps);
+        return true;
+    }
+}
+
+export const rateLimiter = new RateLimiter();
+```
+
+**應用場景：**
+- 下單：每分鐘最多 10 次
+- 登入嘗試：每分鐘最多 5 次
+
+---
+
+### 7.3 Input Validation 強化 ✅
+
+**需增強驗證的輸入：**
+
+| 欄位 | 目前驗證 | 建議加強 |
+|------|----------|----------|
+| 顧客姓名 | 無 | 長度 2-20，禁止特殊字元 |
+| 訂單備註 | 無 | 長度 < 200，XSS sanitize |
+| 班級名稱 | 無 | 格式驗證（如：X年X班）|
+| 價格/庫存 | 無 | 正整數，上限檢查 |
+
+---
+
+## 🟠 Phase 8：中期功能 (2-4 週)
+
+### 8.1 多語言支援 (i18n) 🌍
 
 **技術選型：** `react-i18next`
+
+```bash
+npm install react-i18next i18next
+```
 
 **語言優先順序：**
 1. 繁體中文 (zh-TW) - 預設
 2. 英文 (en) - 外籍學生
 3. 簡體中文 (zh-CN) - 可選
+
+**檔案結構：**
+```
+frontend/src/locales/
+├── zh-TW.json     # 繁體中文
+├── en.json        # 英文
+└── index.ts       # 初始化
+```
 
 **優先翻譯頁面：**
 - ClassSelectorPage（班級選擇）
@@ -132,7 +139,7 @@ npx playwright install
 
 ---
 
-### 7.3 PWA 完整支援 📱
+### 8.2 PWA 完整支援 📱
 
 **已完成：**
 - ✅ Service Worker 基礎
@@ -141,28 +148,28 @@ npx playwright install
 
 **待完成：**
 
-| 功能 | 說明 |
-|------|------|
-| App Manifest | 完善 icons、theme_color |
-| Install Prompt | 引導用戶安裝 PWA |
-| Push Notification | 新訂單推送通知 |
-| Background Sync | 離線操作自動重試 |
+| 功能 | 說明 | 複雜度 |
+|------|------|--------|
+| App Manifest | icons、theme_color | 低 |
+| Install Prompt | 引導用戶安裝 | 中 |
+| Push Notification | 新訂單推送 | 高 |
+| Background Sync | 離線操作重試 | 高 |
 
 ---
 
-### 7.4 進階權限系統 👥
+### 8.3 進階權限系統 👥
 
 **現有角色：** `owner` > `classAdmin` > `pending` > `none`
 
 **建議新增：**
 
-| 角色 | 權限 |
-|------|------|
-| `cashier` | 只能處理收款 |
+| 角色 | 權限說明 |
+|------|----------|
+| `cashier` | 只能處理收款，不能修改菜單 |
 | `viewer` | 只能查看報表 |
 | `inventory` | 只能管理庫存 |
 
-**Firestore Rules 更新範例：**
+**Firestore Rules 範例：**
 ```javascript
 function canManageInventory() {
     return hasRole(['owner', 'classAdmin', 'inventory']);
@@ -171,9 +178,9 @@ function canManageInventory() {
 
 ---
 
-## 🟡 Phase 8：長期規劃 (1-2 月)
+## 🟡 Phase 9：長期規劃 (1-2 月)
 
-### 8.1 行銷功能模組 🎁
+### 9.1 行銷功能模組 🎁
 
 #### 優惠券系統
 
@@ -190,8 +197,6 @@ interface Coupon {
 }
 ```
 
-**Firestore 路徑：** `kitchens/{classId}/coupons/{couponId}`
-
 #### 集點卡系統
 
 ```typescript
@@ -205,7 +210,7 @@ interface LoyaltyCard {
 
 ---
 
-### 8.2 跨班級數據儀表板 📊
+### 9.2 跨班級數據儀表板 📊
 
 **功能設計 (Owner 專用)：**
 
@@ -218,7 +223,7 @@ interface LoyaltyCard {
 
 ---
 
-### 8.3 印表機整合 🖨️
+### 9.3 印表機整合 🖨️
 
 **支援類型：**
 - 網路印表機
@@ -232,7 +237,7 @@ interface LoyaltyCard {
 
 ---
 
-### 8.4 LINE / Telegram 通知 📲
+### 9.4 LINE / Telegram 通知 📲
 
 **Cloud Functions 實作：**
 
@@ -243,8 +248,7 @@ exports.notifyKitchen = functions.firestore
     .onCreate(async (snap, context) => {
         const order = snap.data();
         await sendLineNotify({
-            token: process.env.LINE_TOKEN,
-            message: `🍽️ 新訂單 ${order.orderId}\n${order.items.map(i => i.name).join('、')}`
+            message: `🍽️ 新訂單 ${order.orderId}`
         });
     });
 ```
@@ -255,12 +259,12 @@ exports.notifyKitchen = functions.firestore
 
 ### 待處理項目
 
-| 項目 | 位置 | 優先級 |
-|------|------|--------|
-| 移除舊 API | `api.ts`, `useMenu.ts`, `useOrders.ts` | 🔴 高 |
-| 移除 console.log | 全域 | 🟡 中 |
-| 替換 any 類型 | `KitchenApp.tsx` | 🟡 中 |
-| 統一錯誤處理 | 全域 | 🟢 低 |
+| 項目 | 狀態 | 說明 |
+|------|------|------|
+| 舊 API 移除 | ✅ 完成 | 已刪除 api.ts, useMenu.ts, useOrders.ts |
+| KitchenApp 拆分 | ✅ 完成 | 259 行 (-72%) |
+| console.log 清理 | ⏳ 待處理 | 改用 logger |
+| any 類型替換 | ⏳ 待處理 | 改為具體類型 |
 
 ---
 
@@ -273,23 +277,11 @@ exports.notifyKitchen = functions.firestore
 
 ### 待優化 📌
 
-| 優化 | 預期效果 |
-|------|----------|
-| 虛擬列表 | 大量訂單效能 +50% |
-| 圖片懶載入 | 首屏載入加速 |
-| useMemo/useCallback | 減少不必要渲染 |
-
-**虛擬列表推薦：** `@tanstack/react-virtual`
-
----
-
-## 🛡️ 安全性待加強
-
-| 項目 | 說明 | 優先級 |
-|------|------|--------|
-| Rate Limiting | API 請求頻率限制 | 🔴 高 |
-| Input Validation | 前後端雙重驗證 | 🔴 高 |
-| XSS 防護 | sanitize 用戶輸入 | 🟡 中 |
+| 優化 | 預期效果 | 複雜度 |
+|------|----------|--------|
+| 虛擬列表 | 大量訂單效能 +50% | 中 |
+| 圖片懶載入 | 首屏載入加速 | 低 |
+| useMemo/useCallback | 減少不必要渲染 | 低 |
 
 ---
 
@@ -310,41 +302,40 @@ exports.notifyKitchen = functions.firestore
 
 ## 📋 優先級排序
 
-### 🔴 最高優先 (本週)
-1. ~~離線同步完善~~ ✅
-2. ~~API 統一化~~ ✅
-3. ~~KitchenApp 重構~~ ✅ (基礎完成)
-4. 音效設定 UI
-5. 舊 API 完全移除
+### 🔴 最高優先 (已完成 ✅)
+1. ~~KitchenApp 重構~~ ✅
+2. ~~音效設定 UI~~ ✅
+3. ~~舊 API 移除~~ ✅
+4. ~~E2E 測試框架~~ ✅
 
-### 🟠 高優先 (兩週內)
-6. E2E 測試 (Playwright)
-7. KitchenApp 進一步拆分
-8. Rate Limiting
+### 🟠 高優先 (本週)
+5. 執行並擴充 E2E 測試
+6. Rate Limiting
+7. Input Validation
 
-### 🟡 中優先 (一個月內)
-9. 多語言支援
-10. PWA 完整支援
-11. 進階權限系統
+### 🟡 中優先 (兩週內)
+8. 多語言支援 (i18n)
+9. PWA 完整支援
+10. 進階權限系統
 
 ### 🟢 低優先 (長期)
-12. 行銷功能
-13. 印表機整合
-14. LINE 通知
+11. 行銷功能
+12. 印表機整合
+13. LINE 通知
 
 ---
 
 ## 🚀 快速開始
 
 ```bash
-# 開始下一個功能開發
-git checkout -b feature/sound-settings-ui
+# E2E 測試
+npx playwright install   # 首次安裝瀏覽器
+npm run test:e2e         # 執行測試
 
-# 運行測試
-npm run test:run
-
-# 建置驗證
-npm run build
+# 開發
+npm run dev              # 啟動開發伺服器
+npm run build            # 建置生產版本
+npm run test:run         # 單元測試
 ```
 
 ---
@@ -353,8 +344,9 @@ npm run build
 
 | 版本 | 日期 | 主要變更 |
 |------|------|----------|
-| v3.3.1 | 2026-01-10 | API 統一化、離線同步、KitchenApp 重構、AdminApp 管理 |
-| v3.3.0 | 2026-01-10 | 訂單追蹤、進階報表、離線支援、自動化測試 |
+| v3.3.2 | 2026-01-10 | KitchenApp 重構 (-72%)、音效設定 UI、E2E 框架 |
+| v3.3.1 | 2026-01-10 | API 統一化、離線同步、AdminApp 管理 |
+| v3.3.0 | 2026-01-10 | 訂單追蹤、進階報表、離線支援、Vitest 測試 |
 | v3.2.0 | 2026-01-09 | 效能優化 |
 | v3.1.2 | 2026-01-09 | 架構優化 |
 | v3.1.1 | 2026-01-09 | 安全+穩定 |

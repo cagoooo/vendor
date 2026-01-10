@@ -1,7 +1,7 @@
 # 📋 校園點餐系統 開發優化路線圖
 
-> **最後更新：2026-01-10 10:45**  
-> **當前版本：v3.3.1**  
+> **最後更新：2026-01-10 16:37**  
+> **當前版本：v3.3.2**  
 > 此文件提供詳細的後續開發、優化與改良方向
 
 ---
@@ -38,55 +38,40 @@
 | 自動化測試 | `5daac38` | ✅ Vitest 9/9 通過 |
 | Google 驗證 meta | `a80d6cd` | ✅ index.html + home.html |
 
-### P5 優化改進 `v3.3.1` (2026-01-10)
+### P5 Phase 6 前半 `v3.3.1` (2026-01-10)
 | 項目 | 狀態 | 說明 |
 |-----|------|------|
 | API 統一化 | ✅ | 標記舊版 api.ts、useMenu.ts、useOrders.ts 為 @deprecated |
 | 離線同步完善 | ✅ | 實作 executeAction，整合到 CustomerApp |
-| KitchenApp 組件拆分 | ✅ | 新增 ClassSelector、KitchenHeader，減少 152 行 |
 | 庫存低量警示 | ✅ | 新增 LowStockAlert.tsx 組件 |
-| 音效通知優化 | ✅ | 新增 notificationSound.ts 服務 |
-| AdminApp 班級管理 | ✅ | 新增/編輯/刪除班級功能、updateKitchen、deleteKitchen API |
+| 音效通知服務 | ✅ | 新增 notificationSound.ts 服務 |
+| AdminApp 班級管理 | ✅ | 新增/編輯/刪除班級功能 |
 
-
-### UI/UX 改善
-| 項目 | Commit | 狀態 |
-|-----|--------|------|
-| 返回點餐按鈕優化 | `b6adb7f` | ✅ 更醒目的按鈕樣式 |
-
----
-
-## ⏳ 待處理項目
-
-### Google OAuth 驗證
-- ✅ 已建立 `cagoooo.github.io` 根倉庫
-- ✅ 已上傳驗證檔：`google6de03ad76f9c1b29.html`
-- ⏳ **等待 Google 審核（1-3 工作日）**
+### P6 Phase 6 完成 `v3.3.2` (2026-01-10)
+| 項目 | 狀態 | 說明 |
+|-----|------|------|
+| KitchenApp 重構 | ✅ | 930 行 → 259 行 (-72%) |
+| InventoryPanel | ✅ | 庫存管理面板組件 |
+| StatsPanel | ✅ | 統計圖表面板組件 |
+| 音效設定 UI | ✅ | 開關 + 音量 + 測試按鈕 |
+| 舊 API 移除 | ✅ | 刪除 api.ts, useMenu.ts, useOrders.ts |
+| E2E 測試框架 | ✅ | Playwright 配置 + 測試檔案 |
 
 ---
 
-## 📁 新增檔案清單 (Phase 4-5)
+## 📁 新增檔案清單 (v3.3.2)
 
 ```
 frontend/
-├── src/
-│   ├── apps/customer/
-│   │   └── OrderTrackingPage.tsx    ← 訂單追蹤
-│   ├── apps/kitchen/components/
-│   │   ├── AdvancedStats.tsx        ← 進階報表
-│   │   ├── ClassSelector.tsx        ← 班級選擇器 (NEW)
-│   │   └── KitchenHeader.tsx        ← 廚房 Header (NEW)
-│   ├── components/
-│   │   └── OfflineIndicator.tsx     ← 離線指示
-│   ├── hooks/
-│   │   └── useOfflineSync.ts        ← 離線同步 (完善)
-│   └── services/
-│       └── reportApi.ts             ← 報表 API
-├── tests/
-│   ├── setup.ts
-│   └── unit/
-│       └── cartStore.test.ts        ← 9 個測試
-└── vitest.config.ts
+├── src/apps/kitchen/components/
+│   ├── ClassSelector.tsx     ← 班級選擇器
+│   ├── KitchenHeader.tsx     ← 廚房 Header + 音效設定
+│   ├── InventoryPanel.tsx    ← 庫存管理面板
+│   └── StatsPanel.tsx        ← 統計圖表面板
+├── e2e/
+│   ├── customer-order.spec.ts      ← 顧客點餐測試
+│   └── kitchen-management.spec.ts  ← 廚房管理測試
+└── playwright.config.ts      ← E2E 測試配置
 ```
 
 ---
@@ -94,40 +79,40 @@ frontend/
 ## 🧪 測試指令
 
 ```bash
+# 單元測試 (Vitest)
 npm run test           # 監控模式
 npm run test:run       # 單次執行
 npm run test:coverage  # 覆蓋率報告
+
+# E2E 測試 (Playwright)
+npx playwright install  # 首次安裝瀏覽器
+npm run test:e2e        # 執行測試
+npm run test:e2e:ui     # UI 模式
 ```
 
 ---
 
 ## 🎯 建議下一階段
 
-### Phase 6：短期優先（本週）
-- [x] 離線同步完善
-- [x] API 統一化
-- [x] KitchenApp 組件拆分 (基礎完成)
-- [x] 庫存低量警示
-- [x] 音效通知服務
-- [x] AdminApp 班級管理
-- [ ] 音效設定 UI
-- [ ] 舊 API 完全移除
+### Phase 7：高優先（本週）
+- [ ] 執行並擴充 E2E 測試
+- [ ] Rate Limiting 安全防護
+- [ ] Input Validation 強化
 
-### Phase 7：中期功能（兩週內）
-- [ ] E2E 自動化測試 (Playwright)
-- [ ] KitchenApp 進一步拆分 (InventoryPanel, StatsPanel)
-- [ ] Rate Limiting
-
-### Phase 8：長期功能
+### Phase 8：中期功能（兩週內）
 - [ ] 多語言支援 (i18n)
 - [ ] PWA 完整支援
 - [ ] 進階權限系統
-- [ ] 行銷功能（優惠券、集點）
 
-### 測試擴充
-- [ ] API 整合測試
-- [ ] E2E 測試 (Playwright)
-- [ ] 覆蓋率 > 70%
+### Phase 9：長期功能
+- [ ] 行銷功能（優惠券、集點）
+- [ ] 印表機整合
+- [ ] LINE/Telegram 通知
+
+### 技術債務
+- [ ] console.log 清理
+- [ ] any 類型替換
+- [ ] 虛擬列表優化
 
 ---
 
@@ -135,8 +120,9 @@ npm run test:coverage  # 覆蓋率報告
 
 | 版本 | 日期 | 內容 |
 |-----|------|------|
-| v3.3.1 | 2026-01-10 | API 統一化 + 離線同步完善 + 組件拆分開始 |
-| v3.3.0 | 2026-01-10 | Phase 4-5：追蹤+報表+離線+測試 |
-| v3.2.0 | 2026-01-09 | P3 效能優化 |
-| v3.1.2 | 2026-01-09 | P2 架構優化 |
-| v3.1.1 | 2026-01-09 | P1 安全+穩定 |
+| v3.3.2 | 2026-01-10 | KitchenApp 重構 (-72%) + 音效設定 UI + E2E 框架 |
+| v3.3.1 | 2026-01-10 | API 統一化 + 離線同步 + AdminApp 管理 |
+| v3.3.0 | 2026-01-10 | 訂單追蹤 + 進階報表 + 離線支援 + Vitest 測試 |
+| v3.2.0 | 2026-01-09 | 效能優化 |
+| v3.1.2 | 2026-01-09 | 架構優化 |
+| v3.1.1 | 2026-01-09 | 安全+穩定 |
