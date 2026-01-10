@@ -20,9 +20,11 @@ import {
     type Kitchen
 } from '../../services/classApi';
 import type { CategoryItem } from '../../types';
+import type { Tab } from './types';
+import { OrderList } from './components';
 import { OwnerDashboard } from '../../components/OwnerDashboard';
 import {
-    Flame, RefreshCw, Settings, Trash2,
+    Flame, RefreshCw, Settings,
     ChefHat, Package, PieChart, Clock, Plus, Minus,
     DollarSign, ShoppingBag, TrendingUp, LayoutDashboard,
     ChevronDown, Store, ImagePlus, X, Upload, Tag
@@ -32,8 +34,6 @@ import { Bar, Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js';
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
-
-type Tab = 'orders' | 'inventory' | 'stats' | 'dashboard';
 
 export function KitchenApp() {
     const { profile, logout, isOwner, currentClassId: authClassId } = useAuth();
@@ -420,121 +420,14 @@ export function KitchenApp() {
             {/* Main Content */}
             <main className="p-4 md:p-6 max-w-7xl mx-auto pb-24">
                 {/* Orders Tab */}
-                {
-                    activeTab === 'orders' && (
-                        <div>
-                            <div className="flex justify-between items-center mb-4">
-                                <h2 className="text-lg font-bold text-gray-300 flex items-center gap-2">
-                                    排隊中
-                                    <span className="bg-red-600 text-white px-2 py-0.5 rounded-full text-sm">
-                                        {filteredOrders.length}
-                                    </span>
-                                </h2>
-                                <button
-                                    onClick={refetch}
-                                    className="text-gray-400 hover:text-white text-sm bg-gray-800 px-4 py-2 rounded-lg border border-gray-700 flex items-center gap-1"
-                                >
-                                    <RefreshCw className="w-4 h-4" />
-                                    重整
-                                </button>
-                            </div>
-
-                            {filteredOrders.length === 0 ? (
-                                <div className="text-center py-20 text-gray-600">
-                                    <ChefHat className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                                    <p>無訂單</p>
-                                </div>
-                            ) : (
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                                    {filteredOrders.map((order) => {
-                                        const isPrep = order.status === 'Preparing';
-                                        const isDone = order.status === 'Completed';
-
-                                        let cardStyle = 'border-l-gray-600 bg-gray-800';
-                                        let btnStyle = 'bg-blue-600 hover:bg-blue-500';
-                                        let btnText = '👨‍🍳 開始製作';
-                                        let nextStatus = 'Preparing';
-
-                                        if (isPrep) {
-                                            cardStyle = 'border-l-orange-500 bg-gray-800 shadow-[0_0_15px_rgba(249,115,22,0.15)]';
-                                            btnStyle = 'bg-green-600 hover:bg-green-500';
-                                            btnText = '🍽️ 製作完成';
-                                            nextStatus = 'Completed';
-                                        } else if (isDone) {
-                                            cardStyle = 'border-l-green-500 bg-green-900/30 shadow-[0_0_20px_rgba(16,185,129,0.3)]';
-                                            btnStyle = 'bg-emerald-600 hover:bg-emerald-500 ring-2 ring-emerald-400 ring-offset-2 ring-offset-gray-800';
-                                            btnText = `💰 收款 $${order.total || order.totalPrice}`;
-                                            nextStatus = 'Paid';
-                                        }
-
-                                        return (
-                                            <div
-                                                key={order.id}
-                                                className={`rounded-xl p-4 shadow-lg border-l-[6px] ${cardStyle} transition-all`}
-                                            >
-                                                {/* Header */}
-                                                <div className="flex justify-between items-start mb-2">
-                                                    <div className="pr-12">
-                                                        <h3 className="text-lg lg:text-xl font-bold text-white truncate">{order.info}</h3>
-                                                        <span className="text-xs lg:text-sm text-gray-400 font-mono">{order.time}</span>
-                                                        {isPrep && (
-                                                            <span className="ml-2 text-[10px] bg-orange-600 px-1 rounded animate-pulse">製作中</span>
-                                                        )}
-                                                        {isDone && (
-                                                            <span className="ml-2 text-[10px] bg-green-600 px-1 rounded font-bold">待取餐</span>
-                                                        )}
-                                                    </div>
-                                                    <div className="text-right">
-                                                        <div className="text-[10px] lg:text-xs text-gray-400">NO.</div>
-                                                        <div className="text-xl lg:text-2xl font-bold text-white" style={{ fontFamily: "'Courier New', monospace" }}>
-                                                            {order.id.split('-')[1]}
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                {/* Note */}
-                                                {order.note && (
-                                                    <div className="bg-red-900/30 text-red-300 text-xs px-2 py-1 rounded mb-2 inline-block">
-                                                        {order.note}
-                                                    </div>
-                                                )}
-
-                                                {/* Items */}
-                                                <div className="bg-gray-900/50 rounded-lg p-3 lg:p-4 mb-4 space-y-1 lg:space-y-2 max-h-32 lg:max-h-40 overflow-y-auto border border-gray-700/50">
-                                                    {order.items.map((item, idx) => (
-                                                        <div key={idx} className="flex justify-between text-sm lg:text-base border-b border-gray-700/50 pb-1 lg:pb-2">
-                                                            <span className="text-gray-300">{item.name}</span>
-                                                            <span className="font-bold text-orange-400">x{item.quantity}</span>
-                                                        </div>
-                                                    ))}
-                                                </div>
-
-                                                {/* Actions */}
-                                                <div className="flex items-center gap-2 lg:gap-3 pt-3 lg:pt-4 border-t border-gray-700">
-                                                    <span className="font-bold text-xl lg:text-2xl text-gray-300 w-16 lg:w-20">
-                                                        ${order.total || order.totalPrice}
-                                                    </span>
-                                                    <button
-                                                        onClick={() => handleStatusUpdate(order.id, nextStatus, order.total || order.totalPrice)}
-                                                        className={`flex-1 ${btnStyle} text-white px-3 lg:px-4 py-3 lg:py-4 rounded-lg font-bold shadow transition active:scale-95 text-sm lg:text-base`}
-                                                    >
-                                                        {btnText}
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleCancelOrder(order.id)}
-                                                        className="bg-gray-700 hover:bg-red-600 text-gray-400 hover:text-white px-3 py-3 rounded-lg transition"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                        </div>
-                    )
-                }
+                {activeTab === 'orders' && (
+                    <OrderList
+                        orders={filteredOrders}
+                        onRefetch={refetch}
+                        onStatusUpdate={handleStatusUpdate}
+                        onCancel={handleCancelOrder}
+                    />
+                )}
 
                 {/* Inventory Tab */}
                 {
