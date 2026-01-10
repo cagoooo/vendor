@@ -147,10 +147,16 @@ export function LoginPage() {
                     )}
                 </button>
 
-                {/* Footer */}
-                <div className="mt-8 text-center">
-                    <Link to="/" className="text-gray-500 hover:text-orange-400 text-sm transition">
-                        ← 返回點餐頁面
+                {/* Back to Order Button */}
+                <div className="mt-6">
+                    <Link
+                        to="/"
+                        className="w-full flex items-center justify-center gap-2 bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-xl transition border border-gray-600 shadow-lg"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        <span className="text-sm md:text-base">返回點餐頁面</span>
                     </Link>
                 </div>
             </div>
