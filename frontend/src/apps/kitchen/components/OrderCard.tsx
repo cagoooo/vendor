@@ -63,19 +63,19 @@ export const OrderCard = memo(function OrderCard({ order, onStatusUpdate, onCanc
             </div>
 
             {/* Actions */}
-            <div className="flex items-center gap-2 lg:gap-3 pt-3 lg:pt-4 border-t border-gray-700">
-                <span className="font-bold text-xl lg:text-2xl text-gray-300 w-16 lg:w-20">
+            <div className="flex items-center gap-2 pt-3 border-t border-gray-700">
+                <span className="font-bold text-lg sm:text-xl lg:text-2xl text-gray-300 shrink-0">
                     ${order.total || order.totalPrice}
                 </span>
                 <button
                     onClick={() => onStatusUpdate(order.id, nextStatus, order.total || order.totalPrice)}
-                    className={`flex-1 ${btnStyle} text-white px-3 lg:px-4 py-3 lg:py-4 rounded-lg font-bold shadow transition active:scale-95 text-sm lg:text-base`}
+                    className={`flex-1 min-w-0 ${btnStyle} text-white px-2 sm:px-3 lg:px-4 py-2.5 sm:py-3 lg:py-4 rounded-lg font-bold shadow transition active:scale-95 text-xs sm:text-sm lg:text-base whitespace-nowrap`}
                 >
                     {btnText}
                 </button>
                 <button
                     onClick={() => onCancel(order.id)}
-                    className="bg-gray-700 hover:bg-red-600 text-gray-400 hover:text-white px-3 py-3 rounded-lg transition"
+                    className="shrink-0 bg-gray-700 hover:bg-red-600 text-gray-400 hover:text-white p-2.5 sm:p-3 rounded-lg transition"
                 >
                     <Trash2 className="w-4 h-4" />
                 </button>
