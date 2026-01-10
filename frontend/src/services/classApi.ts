@@ -498,6 +498,12 @@ export async function getAllKitchens(): Promise<ApiResponse<Kitchen[]>> {
 
         for (const docSnap of kitchensSnapshot.docs) {
             const data = docSnap.data();
+
+            // 跳過已刪除的班級
+            if (data.isDeleted) {
+                continue;
+            }
+
             // 檢查該班級是否有菜單（至少有一個菜品）
             const menuSnapshot = await getDocs(
                 query(collection(db, `kitchens/${docSnap.id}/menuItems`), where('isActive', '==', true))
@@ -558,6 +564,67 @@ export async function createKitchen(
         return { status: 'error', message: 'Failed to create kitchen' };
     }
 }
+
+/**
+ * 更新班級廚房資訊
+ */
+export async function updateKitchen(
+    classId: string,
+    updates: {
+        className?: string;
+        ownerUid?: string;
+        ownerName?: string;
+        isOpen?: boolean;
+    }
+): Promise<ApiResponse> {
+    try {
+        // 更新廚房基本資訊
+        const kitchenUpdates: Record<string, unknown> = {
+            updatedAt: Timestamp.now()
+        };
+
+        if (updates.className !== undefined) {
+            kitchenUpdates.className = updates.className;
+        }
+        if (updates.ownerUid !== undefined) {
+            kitchenUpdates.ownerUid = updates.ownerUid;
+        }
+        if (updates.ownerName !== undefined) {
+            kitchenUpdates.ownerName = updates.ownerName;
+        }
+
+        await updateDoc(doc(db, 'kitchens', classId), kitchenUpdates);
+
+        // 如果有更新營業狀態，同步到系統設定
+        if (updates.isOpen !== undefined) {
+            await setClassSystemConfig(classId, { isOpen: updates.isOpen });
+        }
+
+        return { status: 'success' };
+    } catch (error) {
+        console.error('updateKitchen error:', error);
+        return { status: 'error', message: 'Failed to update kitchen' };
+    }
+}
+
+/**
+ * 刪除班級廚房（軟刪除）
+ */
+export async function deleteKitchen(classId: string): Promise<ApiResponse> {
+    try {
+        await updateDoc(doc(db, 'kitchens', classId), {
+            isDeleted: true,
+            deletedAt: Timestamp.now(),
+            updatedAt: Timestamp.now()
+        });
+
+        return { status: 'success' };
+    } catch (error) {
+        console.error('deleteKitchen error:', error);
+        return { status: 'error', message: 'Failed to delete kitchen' };
+    }
+}
+
 
 // ============ 圖片 API ============
 

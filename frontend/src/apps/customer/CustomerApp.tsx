@@ -4,6 +4,8 @@ import { useClassMenu } from '../../hooks/useClassMenu';
 import { useCartStore, useOrderHistoryStore } from '../../stores';
 import { placeClassOrder, checkClassOrderStatus, getClassCategories } from '../../services/classApi';
 import type { CategoryItem } from '../../types';
+import { useOfflineSync, ACTION_TYPES } from '../../hooks/useOfflineSync';
+import { OfflineIndicator } from '../../components/OfflineIndicator';
 import { MenuCard } from '../../components/order/MenuCard';
 import { CartDrawer } from '../../components/order/CartDrawer';
 import { OrderHistoryModal } from '../../components/order/OrderHistoryModal';
@@ -30,6 +32,9 @@ export function CustomerApp() {
     const [showShare, setShowShare] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [categories, setCategories] = useState<CategoryItem[]>([]);
+
+    // 離線同步
+    const { isOnline, pendingCount, queueAction } = useOfflineSync();
 
     // 追蹤「請取餐」訂單數量，用於自動彈出
     const prevReadyCountRef = useRef(0);
@@ -217,6 +222,43 @@ export function CustomerApp() {
         setIsSubmitting(true);
 
         try {
+            // 離線模式：暫存訂單到本地
+            if (!isOnline) {
+                queueAction(ACTION_TYPES.PLACE_ORDER, {
+                    classId,
+                    customerClass: cart.customerClass,
+                    customerName: cart.customerName,
+                    items: cart.items.map(item => ({
+                        name: item.name,
+                        quantity: item.quantity,
+                        price: item.price,
+                        menuItemId: item.menuItemId,
+                    })),
+                    totalPrice: cart.getTotal(),
+                    note: cart.note,
+                });
+
+                cart.clearCart();
+                setShowCart(false);
+
+                await Swal.fire({
+                    icon: 'info',
+                    title: '📴 離線訂單已暫存',
+                    html: `
+            <div class="text-center">
+              <p class="text-gray-500 mb-4">網路恢復後將自動送出</p>
+              <div class="inline-block bg-gray-600 text-white px-6 py-3 rounded-xl">
+                <span class="text-lg font-bold">待處理訂單: ${pendingCount + 1}</span>
+              </div>
+              <p class="text-sm text-gray-400 mt-4">請保持此頁面開啟</p>
+            </div>
+          `,
+                    confirmButtonText: '了解',
+                    confirmButtonColor: '#1f2937',
+                });
+                return;
+            }
+
             const response = await placeClassOrder(
                 classId,
                 cart.customerClass,
@@ -282,6 +324,8 @@ export function CustomerApp() {
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-gray-50 to-orange-50/30 pb-28">
+            {/* 離線指示器 */}
+            <OfflineIndicator />
             {/* Hero Banner */}
             <div className="relative h-52 sm:h-60 md:h-72 overflow-hidden">
                 <img

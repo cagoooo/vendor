@@ -14,9 +14,11 @@ import {
 import { db } from '../../services/firebase';
 import {
     Users, CheckCircle2, XCircle, School, Clock,
-    LogOut, Settings, RefreshCw, ChefHat, AlertCircle
+    LogOut, Settings, RefreshCw, ChefHat, AlertCircle,
+    Plus, Edit2, Trash2
 } from 'lucide-react';
 import Swal from 'sweetalert2';
+import { createKitchen, updateKitchen, deleteKitchen } from '../../services/classApi';
 
 interface PendingUser {
     uid: string;
@@ -220,6 +222,189 @@ export function AdminApp() {
         }
     };
 
+    // 新增班級廨房
+    const handleAddKitchen = async () => {
+        const { value: kitchenInfo } = await Swal.fire({
+            title: '新增班級廨房',
+            html: `
+                <div class="space-y-4 text-left">
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">班級代碼</label>
+                        <input id="classId" type="text" placeholder="如: class-6-7" class="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" />
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">班級名稱</label>
+                        <input id="className" type="text" placeholder="如: 6年7班" class="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" />
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">負責人名稱 (選填)</label>
+                        <input id="ownerName" type="text" placeholder="如: 王老師" class="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" />
+                    </div>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: '建立',
+            cancelButtonText: '取消',
+            confirmButtonColor: '#10b981',
+            background: '#1f2937',
+            color: '#fff',
+            preConfirm: () => {
+                const classId = (document.getElementById('classId') as HTMLInputElement).value.trim();
+                const className = (document.getElementById('className') as HTMLInputElement).value.trim();
+                const ownerName = (document.getElementById('ownerName') as HTMLInputElement).value.trim();
+
+                if (!classId || !className) {
+                    Swal.showValidationMessage('請填寫班級代碼和名稱');
+                    return null;
+                }
+
+                return { classId, className, ownerName };
+            }
+        });
+
+        if (!kitchenInfo) return;
+
+        try {
+            const result = await createKitchen(
+                kitchenInfo.classId,
+                kitchenInfo.className,
+                undefined,
+                kitchenInfo.ownerName || undefined
+            );
+
+            if (result.status === 'success') {
+                Swal.fire({
+                    icon: 'success',
+                    title: '建立成功',
+                    text: `${kitchenInfo.className} 已建立`,
+                    background: '#1f2937',
+                    color: '#fff',
+                });
+                await loadKitchens();
+            } else {
+                throw new Error(result.message);
+            }
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: '建立失敗',
+                text: (error as Error).message,
+                background: '#1f2937',
+                color: '#fff',
+            });
+        }
+    };
+
+    // 編輯班級廨房
+    const handleEditKitchen = async (kitchen: Kitchen, e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const { value: editInfo } = await Swal.fire({
+            title: `編輯 ${kitchen.className}`,
+            html: `
+                <div class="space-y-4 text-left">
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">班級名稱</label>
+                        <input id="className" type="text" value="${kitchen.className}" class="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" />
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">負責人名稱</label>
+                        <input id="ownerName" type="text" value="${kitchen.ownerName || ''}" class="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500" />
+                    </div>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: '儲存',
+            cancelButtonText: '取消',
+            confirmButtonColor: '#3b82f6',
+            background: '#1f2937',
+            color: '#fff',
+            preConfirm: () => {
+                const className = (document.getElementById('className') as HTMLInputElement).value.trim();
+                const ownerName = (document.getElementById('ownerName') as HTMLInputElement).value.trim();
+                return { className, ownerName };
+            }
+        });
+
+        if (!editInfo) return;
+
+        try {
+            const result = await updateKitchen(kitchen.classId, {
+                className: editInfo.className,
+                ownerName: editInfo.ownerName,
+            });
+
+            if (result.status === 'success') {
+                Swal.fire({
+                    icon: 'success',
+                    title: '更新成功',
+                    timer: 1500,
+                    showConfirmButton: false,
+                    background: '#1f2937',
+                    color: '#fff',
+                });
+                await loadKitchens();
+            } else {
+                throw new Error(result.message);
+            }
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: '更新失敗',
+                text: (error as Error).message,
+                background: '#1f2937',
+                color: '#fff',
+            });
+        }
+    };
+
+    // 刪除班級廨房
+    const handleDeleteKitchen = async (kitchen: Kitchen, e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const result = await Swal.fire({
+            title: '確定刪除？',
+            html: `<p>確定要刪除 <span class="text-red-400 font-bold">${kitchen.className}</span> 嗎？</p><p class="text-sm text-gray-400 mt-2">此操作可以復原</p>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: '確定刪除',
+            cancelButtonText: '取消',
+            confirmButtonColor: '#ef4444',
+            background: '#1f2937',
+            color: '#fff',
+        });
+
+        if (!result.isConfirmed) return;
+
+        try {
+            const deleteResult = await deleteKitchen(kitchen.classId);
+
+            if (deleteResult.status === 'success') {
+                Swal.fire({
+                    icon: 'success',
+                    title: '已刪除',
+                    timer: 1500,
+                    showConfirmButton: false,
+                    background: '#1f2937',
+                    color: '#fff',
+                });
+                await loadKitchens();
+            } else {
+                throw new Error(deleteResult.message);
+            }
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: '刪除失敗',
+                text: (error as Error).message,
+                background: '#1f2937',
+                color: '#fff',
+            });
+        }
+    };
+
     if (!isOwner) {
         return (
             <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
@@ -405,18 +590,27 @@ export function AdminApp() {
                                 <div className="flex justify-between items-center mb-4">
                                     <h2 className="text-lg font-bold text-gray-300 flex items-center gap-2">
                                         <School className="w-5 h-5" />
-                                        班級廚房
+                                        班級廨房
                                         <span className="bg-blue-600 text-white px-2 py-0.5 rounded-full text-sm">
                                             {kitchens.length}
                                         </span>
                                     </h2>
-                                    <button
-                                        onClick={loadKitchens}
-                                        className="text-gray-400 hover:text-white text-sm bg-gray-800 px-4 py-2 rounded-lg border border-gray-700 flex items-center gap-1"
-                                    >
-                                        <RefreshCw className="w-4 h-4" />
-                                        重整
-                                    </button>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={handleAddKitchen}
+                                            className="bg-green-600 hover:bg-green-500 text-white text-sm px-4 py-2 rounded-lg flex items-center gap-1 font-bold"
+                                        >
+                                            <Plus className="w-4 h-4" />
+                                            新增
+                                        </button>
+                                        <button
+                                            onClick={loadKitchens}
+                                            className="text-gray-400 hover:text-white text-sm bg-gray-800 px-4 py-2 rounded-lg border border-gray-700 flex items-center gap-1"
+                                        >
+                                            <RefreshCw className="w-4 h-4" />
+                                            重整
+                                        </button>
+                                    </div>
                                 </div>
 
                                 {kitchens.length === 0 ? (
@@ -437,9 +631,26 @@ export function AdminApp() {
                                                     <div className="w-12 h-12 rounded-xl bg-blue-600/20 flex items-center justify-center group-hover:bg-blue-600/30 transition">
                                                         <ChefHat className="w-6 h-6 text-blue-400" />
                                                     </div>
-                                                    <div>
+                                                    <div className="flex-1">
                                                         <h3 className="font-bold text-white text-lg group-hover:text-blue-400 transition">{kitchen.className}</h3>
                                                         <p className="text-xs text-gray-500 font-mono">{kitchen.classId}</p>
+                                                    </div>
+                                                    {/* 編輯/刪除按鈕 */}
+                                                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition">
+                                                        <button
+                                                            onClick={(e) => handleEditKitchen(kitchen, e)}
+                                                            className="p-1.5 bg-gray-700 hover:bg-blue-600 rounded-lg transition"
+                                                            title="編輯"
+                                                        >
+                                                            <Edit2 className="w-3.5 h-3.5" />
+                                                        </button>
+                                                        <button
+                                                            onClick={(e) => handleDeleteKitchen(kitchen, e)}
+                                                            className="p-1.5 bg-gray-700 hover:bg-red-600 rounded-lg transition"
+                                                            title="刪除"
+                                                        >
+                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                        </button>
                                                     </div>
                                                 </div>
                                                 <div className="text-sm text-gray-400">

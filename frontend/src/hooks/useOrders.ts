@@ -1,6 +1,14 @@
+/**
+ * @deprecated 此 Hook 已棄用，請改用 useClassOrders
+ * @see useClassOrders - 支援多班級的訂單載入 Hook
+ * 
+ * 舊版 Hook，使用全局 API，不支援多班級系統。
+ * 將在 v4.0.0 移除。
+ */
 import { useState, useEffect, useCallback } from 'react';
 import { subscribeToOrders, getOrders } from '../services/api';
 import type { Order } from '../types';
+
 
 interface UseOrdersResult {
     orders: Order[];

@@ -4,11 +4,49 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import {
+    placeClassOrder,
+    updateClassOrderStatus,
+    updateClassStock,
+} from '../services/classApi';
+
+// ============ Action Types ============
+export const ACTION_TYPES = {
+    PLACE_ORDER: 'PLACE_ORDER',
+    UPDATE_ORDER_STATUS: 'UPDATE_ORDER_STATUS',
+    UPDATE_STOCK: 'UPDATE_STOCK',
+} as const;
+
+export type ActionType = typeof ACTION_TYPES[keyof typeof ACTION_TYPES];
+
+// ============ Payload Interfaces ============
+export interface PlaceOrderPayload {
+    classId: string;
+    customerClass: string;
+    customerName: string;
+    items: { name: string; quantity: number; price: number; menuItemId?: string }[];
+    totalPrice: number;
+    note?: string;
+}
+
+export interface UpdateOrderStatusPayload {
+    classId: string;
+    orderId: string;
+    status: string;
+}
+
+export interface UpdateStockPayload {
+    classId: string;
+    itemId: string;
+    quantity: number;
+}
+
+export type ActionPayload = PlaceOrderPayload | UpdateOrderStatusPayload | UpdateStockPayload;
 
 interface PendingAction {
     id: string;
-    type: string;
-    payload: unknown;
+    type: ActionType | string;
+    payload: ActionPayload;
     timestamp: number;
 }
 
@@ -77,7 +115,7 @@ export function useOfflineSync() {
     /**
      * 加入待處理佇列
      */
-    const queueAction = useCallback((type: string, payload: unknown): string => {
+    const queueAction = useCallback((type: ActionType | string, payload: ActionPayload): string => {
         const action: PendingAction = {
             id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
             type,
@@ -162,22 +200,54 @@ export function useOfflineSync() {
  * 根據 action.type 呼叫對應的 API
  */
 async function executeAction(action: PendingAction): Promise<void> {
-    // 這裡可以根據 action.type 分派到不同的處理器
-    // 目前作為示例，只是簡單地 console log
     console.log('Executing offline action:', action.type, action.payload);
 
-    // 模擬網路請求
-    await new Promise(resolve => setTimeout(resolve, 100));
+    switch (action.type) {
+        case ACTION_TYPES.PLACE_ORDER: {
+            const payload = action.payload as PlaceOrderPayload;
+            const result = await placeClassOrder(
+                payload.classId,
+                payload.customerClass,
+                payload.customerName,
+                payload.items,
+                payload.totalPrice,
+                payload.note
+            );
+            if (result.status !== 'success') {
+                throw new Error(result.message || 'Failed to place order');
+            }
+            break;
+        }
 
-    // 實際使用時，可以像這樣分派：
-    // switch (action.type) {
-    //     case 'PLACE_ORDER':
-    //         await placeClassOrder(...action.payload);
-    //         break;
-    //     case 'UPDATE_STOCK':
-    //         await updateClassStock(...action.payload);
-    //         break;
-    // }
+        case ACTION_TYPES.UPDATE_ORDER_STATUS: {
+            const payload = action.payload as UpdateOrderStatusPayload;
+            const result = await updateClassOrderStatus(
+                payload.classId,
+                payload.orderId,
+                payload.status
+            );
+            if (result.status !== 'success') {
+                throw new Error(result.message || 'Failed to update order status');
+            }
+            break;
+        }
+
+        case ACTION_TYPES.UPDATE_STOCK: {
+            const payload = action.payload as UpdateStockPayload;
+            const result = await updateClassStock(
+                payload.classId,
+                payload.itemId,
+                payload.quantity
+            );
+            if (result.status !== 'success') {
+                throw new Error(result.message || 'Failed to update stock');
+            }
+            break;
+        }
+
+        default:
+            console.warn(`Unknown action type: ${action.type}`);
+    }
 }
 
 /**
@@ -186,3 +256,4 @@ async function executeAction(action: PendingAction): Promise<void> {
 export function getNetworkStatus(): boolean {
     return navigator.onLine;
 }
+

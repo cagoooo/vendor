@@ -1,6 +1,14 @@
+/**
+ * @deprecated 此 Hook 已棄用，請改用 useClassMenu
+ * @see useClassMenu - 支援多班級的菜單載入 Hook
+ * 
+ * 舊版 Hook，使用全局 API，不支援多班級系統。
+ * 將在 v4.0.0 移除。
+ */
 import { useState, useEffect } from 'react';
 import { getMenu, getTrending } from '../services/api';
 import type { MenuItem, SystemConfig } from '../types';
+
 
 interface UseMenuResult {
     menuItems: MenuItem[];

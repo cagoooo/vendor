@@ -1,3 +1,15 @@
+/**
+ * @deprecated 此檔案已棄用
+ * 
+ * 請使用以下替代方案：
+ * - 多班級 API: import { ... } from './classApi'
+ * - 統一入口: import { api } from './api/index'
+ * 
+ * 此檔案使用全局 collection，不支援多班級系統。
+ * 將在 v4.0.0 移除。
+ * 
+ * @see classApi.ts - 支援多班級的完整 API
+ */
 import {
     collection,
     doc,
@@ -16,6 +28,7 @@ import {
 import type { DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
 import { db } from './firebase';
 import type { MenuItem, Order, OrderItem, SystemConfig, ApiResponse } from '../types';
+
 
 // ============ 菜單 API ============
 
