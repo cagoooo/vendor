@@ -143,13 +143,21 @@ export async function placeClassOrder(
 
         // 使用 Transaction 確保庫存原子性操作
         await runTransaction(db, async (transaction) => {
-            // 1. 讀取所有相關菜單項目的當前庫存
+            // ====== 階段 1: 所有讀取操作必須先完成 ======
+
+            // 1a. 讀取所有相關菜單項目的當前庫存
             const menuRefs = items.map(item =>
                 doc(db, getMenuItemsPath(classId), item.menuItemId || item.name)
             );
             const menuSnaps = await Promise.all(
                 menuRefs.map(ref => transaction.get(ref))
             );
+
+            // 1b. 讀取每日銷售統計（必須在任何寫入之前完成）
+            const dailySalesRef = doc(db, getDailySalesPath(classId), today);
+            const dailySalesSnap = await transaction.get(dailySalesRef);
+
+            // ====== 階段 2: 驗證資料 ======
 
             // 2. 驗證庫存是否足夠
             for (let i = 0; i < menuSnaps.length; i++) {
@@ -162,6 +170,8 @@ export async function placeClassOrder(
                     throw new Error(`${items[i].name} 庫存不足（剩餘 ${currentStock}）`);
                 }
             }
+
+            // ====== 階段 3: 所有寫入操作 ======
 
             // 3. 扣除庫存
             for (let i = 0; i < menuRefs.length; i++) {
@@ -190,9 +200,6 @@ export async function placeClassOrder(
             });
 
             // 5. 更新每日銷售統計
-            const dailySalesRef = doc(db, getDailySalesPath(classId), today);
-            const dailySalesSnap = await transaction.get(dailySalesRef);
-
             if (!dailySalesSnap.exists()) {
                 const initialItemSales: Record<string, number> = {};
                 for (const item of items) {
