@@ -45,8 +45,10 @@ service cloud.firestore {
     match /kitchens/{classId}/menuItems/{itemId} {
       // 公開讀取（讓顧客可以看菜單）
       allow read: if true;
-      // 公開更新（扣庫存用）
-      allow update: if true;
+      // 匿名用戶只能更新 stock 欄位（扣庫存用）
+      // 管理員可更新所有欄位
+      allow update: if canManageClass(classId) || 
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stock', 'updatedAt']);
       // 班級管理員或 owner 可以建立/刪除
       allow create, delete: if canManageClass(classId);
     }
@@ -81,11 +83,12 @@ service cloud.firestore {
       allow write: if canManageClass(classId);
     }
     
-    // ====== 向後相容：舊的根級別集合 ======
-    // 菜單：公開讀取和更新庫存
+    // 菜單：公開讀取，限制更新範圍
     match /menuItems/{itemId} {
       allow read: if true;
-      allow update: if true;
+      // 登入用戶可更新所有欄位，匿名用戶只能更新 stock
+      allow update: if request.auth != null || 
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stock', 'updatedAt']);
       allow create, delete: if request.auth != null;
     }
     

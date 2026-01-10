@@ -17,7 +17,8 @@ import {
     onSnapshot,
     Timestamp,
     writeBatch,
-    increment
+    increment,
+    runTransaction
 } from 'firebase/firestore';
 import type { DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
@@ -130,76 +131,99 @@ export async function placeClassOrder(
     note?: string
 ): Promise<ApiResponse> {
     try {
+        // 先檢查系統設定
         const configDoc = await getDoc(doc(db, getSystemConfigPath(classId)));
         if (configDoc.exists() && configDoc.data()?.isOpen === false) {
             return { status: 'error', message: '目前暫停接單' };
         }
 
+        // 生成訂單編號（在 Transaction 外執行以避免衝突）
         const orderId = await generateClassOrderId(classId);
-        const batch = writeBatch(db);
+        const today = new Date().toISOString().slice(0, 10);
 
-        // 更新庫存
-        for (const item of items) {
-            const menuRef = doc(db, getMenuItemsPath(classId), item.menuItemId || item.name);
-            batch.update(menuRef, {
-                stock: increment(-item.quantity)
+        // 使用 Transaction 確保庫存原子性操作
+        await runTransaction(db, async (transaction) => {
+            // 1. 讀取所有相關菜單項目的當前庫存
+            const menuRefs = items.map(item =>
+                doc(db, getMenuItemsPath(classId), item.menuItemId || item.name)
+            );
+            const menuSnaps = await Promise.all(
+                menuRefs.map(ref => transaction.get(ref))
+            );
+
+            // 2. 驗證庫存是否足夠
+            for (let i = 0; i < menuSnaps.length; i++) {
+                const menuSnap = menuSnaps[i];
+                if (!menuSnap.exists()) {
+                    throw new Error(`品項 ${items[i].name} 不存在`);
+                }
+                const currentStock = menuSnap.data()?.stock || 0;
+                if (currentStock < items[i].quantity) {
+                    throw new Error(`${items[i].name} 庫存不足（剩餘 ${currentStock}）`);
+                }
+            }
+
+            // 3. 扣除庫存
+            for (let i = 0; i < menuRefs.length; i++) {
+                transaction.update(menuRefs[i], {
+                    stock: increment(-items[i].quantity),
+                    updatedAt: Timestamp.now()
+                });
+            }
+
+            // 4. 建立訂單
+            const orderRef = doc(db, getOrdersPath(classId), orderId);
+            transaction.set(orderRef, {
+                id: orderId,
+                customerInfo: { class: customerClass, name: customerName },
+                items: items.map(item => ({
+                    menuItemId: item.menuItemId || item.name,
+                    name: item.name,
+                    quantity: item.quantity,
+                    price: item.price
+                })),
+                totalPrice,
+                note: note || '',
+                status: 'Pending',
+                createdAt: Timestamp.now(),
+                updatedAt: Timestamp.now()
             });
-        }
 
-        // 建立訂單
-        const orderRef = doc(db, getOrdersPath(classId), orderId);
-        batch.set(orderRef, {
-            id: orderId,
-            customerInfo: { class: customerClass, name: customerName },
-            items: items.map(item => ({
-                menuItemId: item.menuItemId || item.name,
-                name: item.name,
-                quantity: item.quantity,
-                price: item.price
-            })),
-            totalPrice,
-            note: note || '',
-            status: 'Pending',
-            createdAt: Timestamp.now(),
-            updatedAt: Timestamp.now()
+            // 5. 更新每日銷售統計
+            const dailySalesRef = doc(db, getDailySalesPath(classId), today);
+            const dailySalesSnap = await transaction.get(dailySalesRef);
+
+            if (!dailySalesSnap.exists()) {
+                const initialItemSales: Record<string, number> = {};
+                for (const item of items) {
+                    initialItemSales[item.name] = item.quantity;
+                }
+                transaction.set(dailySalesRef, {
+                    revenue: totalPrice,
+                    orderCount: 1,
+                    itemSales: initialItemSales,
+                    date: today,
+                    updatedAt: Timestamp.now()
+                });
+            } else {
+                const itemUpdates: Record<string, unknown> = {};
+                for (const item of items) {
+                    itemUpdates[`itemSales.${item.name}`] = increment(item.quantity);
+                }
+                transaction.update(dailySalesRef, {
+                    revenue: increment(totalPrice),
+                    orderCount: increment(1),
+                    ...itemUpdates,
+                    updatedAt: Timestamp.now()
+                });
+            }
         });
 
-        // 更新每日銷售統計（下單即計入統計）
-        const today = new Date().toISOString().slice(0, 10);
-        const dailySalesRef = doc(db, getDailySalesPath(classId), today);
-        const dailySalesSnap = await getDoc(dailySalesRef);
-
-        if (!dailySalesSnap.exists()) {
-            const initialItemSales: Record<string, number> = {};
-            for (const item of items) {
-                initialItemSales[item.name] = item.quantity;
-            }
-            batch.set(dailySalesRef, {
-                revenue: totalPrice,
-                orderCount: 1,
-                itemSales: initialItemSales,
-                date: today,
-                updatedAt: Timestamp.now()
-            });
-        } else {
-            // 使用 update 來增量更新
-            const itemUpdates: Record<string, unknown> = {};
-            for (const item of items) {
-                itemUpdates[`itemSales.${item.name}`] = increment(item.quantity);
-            }
-            batch.update(dailySalesRef, {
-                revenue: increment(totalPrice),
-                orderCount: increment(1),
-                ...itemUpdates,
-                updatedAt: Timestamp.now()
-            });
-        }
-
-        await batch.commit();
         return { status: 'success', orderId };
     } catch (error) {
         console.error('placeClassOrder error:', error);
-        return { status: 'error', message: 'Failed to place order' };
+        const message = error instanceof Error ? error.message : 'Failed to place order';
+        return { status: 'error', message };
     }
 }
 

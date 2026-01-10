@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { ClassSelectorPage } from './apps/customer/ClassSelectorPage';
 import { CustomerApp } from './apps/customer/CustomerApp';
 import { KitchenApp } from './apps/kitchen/KitchenApp';
@@ -98,12 +99,15 @@ const basename = import.meta.env.BASE_URL;
 
 function App() {
   return (
-    <BrowserRouter basename={basename}>
-      <AuthProvider>
-        <AppRoutes />
-      </AuthProvider>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter basename={basename}>
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }
 
 export default App;
+
