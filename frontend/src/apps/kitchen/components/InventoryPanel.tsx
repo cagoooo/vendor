@@ -10,6 +10,7 @@ import {
     updateClassCategories,
 } from '../../../services/classApi';
 import type { CategoryItem } from '../../../types';
+import { validateItemName, validatePrice, validateStock } from '../../../utils/validation';
 import Swal from 'sweetalert2';
 
 interface MenuItem {
@@ -158,16 +159,44 @@ export function InventoryPanel({
             focusConfirm: false,
             background: '#1f2937',
             color: '#fff',
-            preConfirm: () => ({
-                name: (document.getElementById('s-n') as HTMLInputElement).value,
-                price: (document.getElementById('s-p') as HTMLInputElement).value,
-                stock: (document.getElementById('s-s') as HTMLInputElement).value,
-                category: (document.getElementById('s-c') as HTMLSelectElement).value,
-            }),
+            preConfirm: () => {
+                const name = (document.getElementById('s-n') as HTMLInputElement).value;
+                const price = (document.getElementById('s-p') as HTMLInputElement).value;
+                const stock = (document.getElementById('s-s') as HTMLInputElement).value;
+                const category = (document.getElementById('s-c') as HTMLSelectElement).value;
+
+                // 驗證品名
+                const nameResult = validateItemName(name);
+                if (!nameResult.valid) {
+                    Swal.showValidationMessage(nameResult.error!);
+                    return false;
+                }
+
+                // 驗證價格
+                const priceResult = validatePrice(price);
+                if (!priceResult.valid) {
+                    Swal.showValidationMessage(priceResult.error!);
+                    return false;
+                }
+
+                // 驗證庫存
+                const stockResult = validateStock(stock || '0');
+                if (!stockResult.valid) {
+                    Swal.showValidationMessage(stockResult.error!);
+                    return false;
+                }
+
+                return {
+                    name: nameResult.sanitized,
+                    price: priceResult.sanitized,
+                    stock: stockResult.sanitized,
+                    category,
+                };
+            },
         });
 
-        if (value?.name && value?.price && currentClassId) {
-            await addClassMenuItem(currentClassId, value.name, parseInt(value.price), parseInt(value.stock) || 0, value.category || 'main');
+        if (value && currentClassId) {
+            await addClassMenuItem(currentClassId, value.name!, parseInt(value.price!), parseInt(value.stock!) || 0, value.category || 'main');
             onRefresh();
         }
     };

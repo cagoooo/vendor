@@ -10,6 +10,8 @@ import { MenuCard } from '../../components/order/MenuCard';
 import { CartDrawer } from '../../components/order/CartDrawer';
 import { OrderHistoryModal } from '../../components/order/OrderHistoryModal';
 import { ShareModal } from '../../components/share/ShareModal';
+import { rateLimiter } from '../../services/rateLimiter';
+import { validateOrderInput } from '../../utils/validation';
 import { ShoppingCart, Receipt, Clock, Loader2, Store, Search, Utensils, QrCode } from 'lucide-react';
 import Swal from 'sweetalert2';
 
@@ -174,18 +176,47 @@ export function CustomerApp() {
     }
 
     const handleSubmitOrder = async () => {
-        if (!cart.customerClass.trim()) {
-            Swal.fire({ toast: true, position: 'top', icon: 'warning', title: '請填寫班級！', showConfirmButton: false, timer: 2000 });
+        // Rate Limiting 檢查
+        const rateCheck = rateLimiter.check('order');
+        if (!rateCheck.allowed) {
+            Swal.fire({
+                toast: true,
+                position: 'top',
+                icon: 'warning',
+                title: `請稍後再試 (${rateCheck.retryAfter} 秒)`,
+                showConfirmButton: false,
+                timer: 3000
+            });
             return;
         }
-        if (!cart.customerName.trim()) {
-            Swal.fire({ toast: true, position: 'top', icon: 'warning', title: '請填寫姓名！', showConfirmButton: false, timer: 2000 });
+
+        // Input Validation
+        const validation = validateOrderInput({
+            customerName: cart.customerName,
+            customerClass: cart.customerClass,
+            note: cart.note,
+        });
+
+        if (!validation.valid) {
+            const firstError = Object.values(validation.errors)[0];
+            Swal.fire({
+                toast: true,
+                position: 'top',
+                icon: 'warning',
+                title: firstError,
+                showConfirmButton: false,
+                timer: 2000
+            });
             return;
         }
+
         if (cart.items.length === 0) {
             Swal.fire({ icon: 'info', title: '購物車是空的', text: '請先點選餐點喔！', confirmButtonColor: '#f97316' });
             return;
         }
+
+        // 記錄請求（通過驗證後）
+        rateLimiter.record('order');
 
         const result = await Swal.fire({
             title: '確認訂單',
