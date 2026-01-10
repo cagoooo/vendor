@@ -11,6 +11,7 @@ const KitchenApp = lazy(() => import('./apps/kitchen/KitchenApp').then(m => ({ d
 const LoginPage = lazy(() => import('./apps/kitchen/LoginPage').then(m => ({ default: m.LoginPage })));
 const AdminApp = lazy(() => import('./apps/admin/AdminApp').then(m => ({ default: m.AdminApp })));
 const DisplayApp = lazy(() => import('./apps/display/DisplayApp').then(m => ({ default: m.DisplayApp })));
+const OrderTrackingPage = lazy(() => import('./apps/customer/OrderTrackingPage').then(m => ({ default: m.OrderTrackingPage })));
 
 // Loading spinner for Suspense fallback
 function LoadingSpinner() {
@@ -78,6 +79,9 @@ function AppRoutes() {
       {/* 叫號顯示 - 公開，需指定班級 */}
       <Route path="/display/:classId" element={<DisplayApp />} />
       <Route path="/pickup/:classId" element={<DisplayApp />} />
+
+      {/* 訂單追蹤 - 公開 */}
+      <Route path="/track/:classId/:orderId" element={<OrderTrackingPage />} />
 
       {/* 廚房管理 - 需登入 */}
       <Route path="/kitchen" element={
