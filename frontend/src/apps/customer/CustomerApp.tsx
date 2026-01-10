@@ -10,6 +10,7 @@ import { MenuCard } from '../../components/order/MenuCard';
 import { CartDrawer } from '../../components/order/CartDrawer';
 import { OrderHistoryModal } from '../../components/order/OrderHistoryModal';
 import { ShareModal } from '../../components/share/ShareModal';
+import { InstallBanner } from '../../components/pwa/InstallBanner';
 import { rateLimiter } from '../../services/rateLimiter';
 import { validateOrderInput } from '../../utils/validation';
 import { ShoppingCart, Receipt, Clock, Loader2, Store, Search, Utensils, QrCode } from 'lucide-react';
@@ -357,6 +358,9 @@ export function CustomerApp() {
         <div className="min-h-screen bg-gradient-to-b from-gray-50 to-orange-50/30 pb-28">
             {/* 離線指示器 */}
             <OfflineIndicator />
+
+            {/* PWA 安裝提示 */}
+            <InstallBanner />
             {/* Hero Banner */}
             <div className="relative h-52 sm:h-60 md:h-72 overflow-hidden">
                 <img
