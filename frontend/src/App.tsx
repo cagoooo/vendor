@@ -1,13 +1,25 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { ClassSelectorPage } from './apps/customer/ClassSelectorPage';
-import { CustomerApp } from './apps/customer/CustomerApp';
-import { KitchenApp } from './apps/kitchen/KitchenApp';
-import { LoginPage } from './apps/kitchen/LoginPage';
-import { AdminApp } from './apps/admin/AdminApp';
-import { DisplayApp } from './apps/display/DisplayApp';
 import { Loader2 } from 'lucide-react';
+
+// Lazy-loaded page components (code splitting)
+const ClassSelectorPage = lazy(() => import('./apps/customer/ClassSelectorPage').then(m => ({ default: m.ClassSelectorPage })));
+const CustomerApp = lazy(() => import('./apps/customer/CustomerApp').then(m => ({ default: m.CustomerApp })));
+const KitchenApp = lazy(() => import('./apps/kitchen/KitchenApp').then(m => ({ default: m.KitchenApp })));
+const LoginPage = lazy(() => import('./apps/kitchen/LoginPage').then(m => ({ default: m.LoginPage })));
+const AdminApp = lazy(() => import('./apps/admin/AdminApp').then(m => ({ default: m.AdminApp })));
+const DisplayApp = lazy(() => import('./apps/display/DisplayApp').then(m => ({ default: m.DisplayApp })));
+
+// Loading spinner for Suspense fallback
+function LoadingSpinner() {
+  return (
+    <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <Loader2 className="w-12 h-12 text-orange-500 animate-spin" />
+    </div>
+  );
+}
 
 // 受保護路由元件 (一般員工/班級管理員)
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -102,7 +114,9 @@ function App() {
     <ErrorBoundary>
       <BrowserRouter basename={basename}>
         <AuthProvider>
-          <AppRoutes />
+          <Suspense fallback={<LoadingSpinner />}>
+            <AppRoutes />
+          </Suspense>
         </AuthProvider>
       </BrowserRouter>
     </ErrorBoundary>

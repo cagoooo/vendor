@@ -1,7 +1,8 @@
+import { memo } from 'react';
 import { Trash2 } from 'lucide-react';
 import type { OrderCardProps } from '../types';
 
-export function OrderCard({ order, onStatusUpdate, onCancel }: OrderCardProps) {
+export const OrderCard = memo(function OrderCard({ order, onStatusUpdate, onCancel }: OrderCardProps) {
     const isPrep = order.status === 'Preparing';
     const isDone = order.status === 'Completed';
 
@@ -81,4 +82,4 @@ export function OrderCard({ order, onStatusUpdate, onCancel }: OrderCardProps) {
             </div>
         </div>
     );
-}
+});
