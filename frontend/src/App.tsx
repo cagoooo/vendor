@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Loader2 } from 'lucide-react';
+import { OfflineIndicator } from './components/OfflineIndicator';
 
 // Lazy-loaded page components (code splitting)
 const ClassSelectorPage = lazy(() => import('./apps/customer/ClassSelectorPage').then(m => ({ default: m.ClassSelectorPage })));
@@ -121,6 +122,7 @@ function App() {
           <Suspense fallback={<LoadingSpinner />}>
             <AppRoutes />
           </Suspense>
+          <OfflineIndicator />
         </AuthProvider>
       </BrowserRouter>
     </ErrorBoundary>
