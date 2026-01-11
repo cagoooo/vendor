@@ -2,6 +2,50 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { useClassOrders } from '../../hooks/useClassOrders';
 import { Utensils, CheckCircle, Volume2, VolumeX, Maximize, Clock, Coffee } from 'lucide-react';
+import { Confetti, CookingAnimation } from '../../components/animations';
+
+// CSS animations for enhanced effects
+const animationStyles = `
+    @keyframes slideInBounce {
+        0% { transform: translateX(100%) scale(0.8); opacity: 0; }
+        60% { transform: translateX(-10%) scale(1.05); opacity: 1; }
+        80% { transform: translateX(5%) scale(0.98); }
+        100% { transform: translateX(0) scale(1); opacity: 1; }
+    }
+    @keyframes pulseGlow {
+        0%, 100% { box-shadow: 0 0 20px rgba(34, 197, 94, 0.3); }
+        50% { box-shadow: 0 0 40px rgba(34, 197, 94, 0.6), 0 0 60px rgba(34, 197, 94, 0.3); }
+    }
+    @keyframes shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+    }
+    @keyframes breathe {
+        0%, 100% { transform: scale(1); opacity: 0.8; }
+        50% { transform: scale(1.02); opacity: 1; }
+    }
+    @keyframes progressBar {
+        0% { width: 0%; }
+        100% { width: 100%; }
+    }
+    .animate-slide-in-bounce {
+        animation: slideInBounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+    .animate-pulse-glow {
+        animation: pulseGlow 2s ease-in-out infinite;
+    }
+    .animate-shimmer {
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+        background-size: 200% 100%;
+        animation: shimmer 2s infinite;
+    }
+    .animate-breathe {
+        animation: breathe 2s ease-in-out infinite;
+    }
+    .progress-bar {
+        animation: progressBar 15s linear infinite;
+    }
+`;
 
 export function DisplayApp() {
     // 從 URL 讀取 classId（支援 /display/:classId 或 ?class=xxx）
@@ -25,6 +69,8 @@ export function DisplayApp() {
     const [lastReadyIds, setLastReadyIds] = useState<Set<string>>(new Set());
     const [isFirstLoad, setIsFirstLoad] = useState(true);
     const [flashActive, setFlashActive] = useState(false);
+    const [confettiActive, setConfettiActive] = useState(false);
+    const [newReadyIds, setNewReadyIds] = useState<Set<string>>(new Set());
     const audioRef = useRef<HTMLAudioElement>(null);
     const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -34,7 +80,7 @@ export function DisplayApp() {
         return () => clearInterval(timer);
     }, []);
 
-    // 新訂單完成時播放音效
+    // 新訂單完成時播放音效和彩花
     useEffect(() => {
         if (isFirstLoad) {
             setIsFirstLoad(false);
@@ -43,10 +89,24 @@ export function DisplayApp() {
         }
 
         const currentIds = new Set(completedOrders.map(o => o.id));
-        const hasNew = completedOrders.some(o => !lastReadyIds.has(o.id));
+        const newIds = completedOrders.filter(o => !lastReadyIds.has(o.id)).map(o => o.id);
+        const hasNew = newIds.length > 0;
 
-        if (hasNew && audioEnabled) {
-            audioRef.current?.play().catch(() => { });
+        if (hasNew) {
+            // 追蹤新完成的訂單 ID，用於入場動畫
+            setNewReadyIds(new Set(newIds));
+
+            // 觸發彩花特效
+            setConfettiActive(true);
+            setTimeout(() => setConfettiActive(false), 3500);
+
+            // 清除新訂單標記（動畫結束後）
+            setTimeout(() => setNewReadyIds(new Set()), 5000);
+
+            if (audioEnabled) {
+                audioRef.current?.play().catch(() => { });
+            }
+
             setFlashActive(true);
             setTimeout(() => setFlashActive(false), 3000);
         }
@@ -83,6 +143,12 @@ export function DisplayApp() {
 
     return (
         <div className="h-screen flex flex-col p-2 md:p-6 lg:p-8 bg-slate-900 text-white overflow-hidden">
+            {/* 動畫樣式 */}
+            <style>{animationStyles}</style>
+
+            {/* 彩花特效 */}
+            <Confetti isActive={confettiActive} />
+
             <audio ref={audioRef} src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" />
 
             {/* Header */}
@@ -161,15 +227,29 @@ export function DisplayApp() {
                                             >
                                                 {order.id.split('-')[1]}
                                             </span>
-                                            {isPrep ? (
-                                                <span className="text-[10px] md:text-xs text-white bg-orange-600 px-1.5 py-0.5 rounded font-bold animate-pulse whitespace-nowrap">
-                                                    製作中
-                                                </span>
-                                            ) : (
-                                                <span className="text-[10px] md:text-xs text-gray-400 border border-gray-600 px-1.5 py-0.5 rounded whitespace-nowrap">
-                                                    排隊中
-                                                </span>
-                                            )}
+                                            <div className="flex flex-col items-end gap-1">
+                                                {isPrep ? (
+                                                    <div className="flex items-center gap-1">
+                                                        <CookingAnimation variant="cooking" size="sm" />
+                                                        <span className="text-[10px] md:text-xs text-white bg-orange-600 px-1.5 py-0.5 rounded font-bold whitespace-nowrap">
+                                                            製作中
+                                                        </span>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex items-center gap-1">
+                                                        <CookingAnimation variant="waiting" size="sm" />
+                                                        <span className="text-[10px] md:text-xs text-gray-400 border border-gray-600 px-1.5 py-0.5 rounded whitespace-nowrap">
+                                                            排隊中
+                                                        </span>
+                                                    </div>
+                                                )}
+                                                {/* 進度條暗示 */}
+                                                <div className="w-full h-1 bg-gray-700 rounded-full overflow-hidden">
+                                                    <div
+                                                        className={`h-full rounded-full ${isPrep ? 'bg-orange-500 progress-bar' : 'bg-gray-600 w-1/4'}`}
+                                                    />
+                                                </div>
+                                            </div>
                                         </div>
                                     );
                                 })}
@@ -198,27 +278,30 @@ export function DisplayApp() {
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4 pb-10">
-                                {readyOrders.map(order => (
-                                    <div
-                                        key={order.id}
-                                        className="border-2 border-green-500 bg-green-500/15 p-4 md:p-6 rounded-xl md:rounded-2xl flex items-center justify-between shadow-[0_0_30px_rgba(34,197,94,0.2)]"
-                                    >
-                                        <div className="flex flex-col">
-                                            <span
-                                                className="text-4xl md:text-5xl lg:text-6xl font-black text-green-400 drop-shadow-[0_0_20px_rgba(34,197,94,0.6)]"
-                                                style={{ fontFamily: "'Courier Prime', monospace", letterSpacing: '1px' }}
-                                            >
-                                                {order.id.split('-')[1]}
-                                            </span>
-                                            <span className="text-xs md:text-sm text-green-100/70 mt-1 font-bold">
-                                                請至櫃台付款
-                                            </span>
+                                {readyOrders.map(order => {
+                                    const isNew = newReadyIds.has(order.id);
+                                    return (
+                                        <div
+                                            key={order.id}
+                                            className={`border-2 border-green-500 bg-green-500/15 p-4 md:p-6 rounded-xl md:rounded-2xl flex items-center justify-between shadow-[0_0_30px_rgba(34,197,94,0.2)] ${isNew ? 'animate-slide-in-bounce animate-pulse-glow' : ''}`}
+                                        >
+                                            <div className="flex flex-col">
+                                                <span
+                                                    className="text-4xl md:text-5xl lg:text-6xl font-black text-green-400 drop-shadow-[0_0_20px_rgba(34,197,94,0.6)]"
+                                                    style={{ fontFamily: "'Courier Prime', monospace", letterSpacing: '1px' }}
+                                                >
+                                                    {order.id.split('-')[1]}
+                                                </span>
+                                                <span className="text-xs md:text-sm text-green-100/70 mt-1 font-bold">
+                                                    請至櫃台付款
+                                                </span>
+                                            </div>
+                                            <div className={`text-2xl md:text-4xl text-green-400 ml-2 ${isNew ? 'animate-bounce' : ''}`}>
+                                                {isNew ? '🎉' : '→'}
+                                            </div>
                                         </div>
-                                        <div className="text-2xl md:text-4xl text-green-400 animate-bounce ml-2">
-                                            →
-                                        </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         )}
                         <div className="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-gray-900 to-transparent pointer-events-none" />

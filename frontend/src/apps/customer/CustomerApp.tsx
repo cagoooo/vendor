@@ -362,29 +362,31 @@ export function CustomerApp() {
             {/* PWA 安裝提示 */}
             <InstallBanner />
             {/* Hero Banner */}
-            <div className="relative h-52 sm:h-60 md:h-72 overflow-hidden">
-                <img
-                    src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=1200&auto=format&fit=crop"
-                    className="w-full h-full object-cover"
-                    alt="Food Banner"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-6 lg:p-8">
-                    <div className="max-w-4xl mx-auto">
-                        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white mb-3 flex items-center gap-3">
-                            <span className="text-4xl sm:text-5xl">🎈</span>
-                            校園點餐系統
+            <div className="relative min-h-[200px] sm:min-h-[240px] md:min-h-[300px]">
+                <div className="absolute inset-0 overflow-hidden">
+                    <img
+                        src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=1200&auto=format&fit=crop"
+                        className="w-full h-full object-cover"
+                        alt="Food Banner"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-black/30" />
+                </div>
+                <div className="relative flex flex-col justify-end h-full min-h-[200px] sm:min-h-[240px] md:min-h-[300px] px-4 pb-6 sm:px-6 sm:pb-8 lg:px-8 lg:pb-10">
+                    <div className="max-w-4xl mx-auto w-full">
+                        <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-white mb-2 sm:mb-3 flex items-center gap-2 sm:gap-3">
+                            <span className="text-3xl sm:text-5xl">🎈</span>
+                            <span>校園點餐系統</span>
                         </h1>
-                        <div className="flex flex-wrap items-center gap-3 sm:gap-4">
-                            <span className="text-orange-300 flex items-center gap-1.5 text-sm sm:text-base">
-                                <Utensils className="w-4 h-4" />
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+                            <span className="text-orange-300 flex items-center gap-1 text-xs sm:text-base">
+                                <Utensils className="w-3 h-3 sm:w-4 sm:h-4" />
                                 線上點餐
                             </span>
-                            <span className="w-1 h-1 rounded-full bg-white/40 hidden sm:block"></span>
-                            <span className="text-white/80 text-sm sm:text-base">即時叫號</span>
+                            <span className="text-white/60 text-xs sm:text-base">•</span>
+                            <span className="text-white/80 text-xs sm:text-base">即時叫號</span>
                             {systemConfig?.waitTime && (
-                                <span className="bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full text-white text-xs sm:text-sm font-medium flex items-center gap-1.5">
-                                    <Clock className="w-3.5 h-3.5" />
+                                <span className="bg-white/20 backdrop-blur-sm px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-white text-[10px] sm:text-sm font-medium flex items-center gap-1">
+                                    <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                                     約 {systemConfig.waitTime} 分鐘
                                 </span>
                             )}
@@ -424,7 +426,7 @@ export function CustomerApp() {
             {/* 主內容區 */}
             <div className="max-w-4xl mx-auto px-3 sm:px-4 lg:px-6">
                 {/* 顧客資訊卡片 */}
-                <div className="relative -mt-8 md:-mt-10 mb-4">
+                <div className="relative -mt-4 sm:-mt-8 md:-mt-10 mb-4">
                     <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 p-4 md:p-6 border border-gray-100">
                         <div className="flex items-center gap-2 mb-4">
                             <span className="text-2xl">👋</span>
