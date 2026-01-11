@@ -11,6 +11,7 @@ import { CartDrawer } from '../../components/order/CartDrawer';
 import { OrderHistoryModal } from '../../components/order/OrderHistoryModal';
 import { ShareModal } from '../../components/share/ShareModal';
 import { InstallBanner } from '../../components/pwa/InstallBanner';
+import { OrderGuideAnimation } from '../../components/animations';
 import { rateLimiter } from '../../services/rateLimiter';
 import { validateOrderInput } from '../../utils/validation';
 import { ShoppingCart, Receipt, Clock, Loader2, Store, Search, Utensils, QrCode } from 'lucide-react';
@@ -35,6 +36,7 @@ export function CustomerApp() {
     const [showShare, setShowShare] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [categories, setCategories] = useState<CategoryItem[]>([]);
+    const [showOrderGuide, setShowOrderGuide] = useState(false);
 
     // 離線同步
     const { isOnline, pendingCount, queueAction } = useOfflineSync();
@@ -342,6 +344,9 @@ export function CustomerApp() {
                     confirmButtonText: '繼續點餐',
                     confirmButtonColor: '#1f2937',
                 });
+
+                // 觸發引導動畫，指向「我的訂單」按鈕
+                setShowOrderGuide(true);
             } else {
                 Swal.fire({ icon: 'error', title: '訂單失敗', text: response.message || '請稍後再試' });
             }
@@ -356,6 +361,12 @@ export function CustomerApp() {
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-gray-50 to-orange-50/30 pb-28">
+            {/* 訂單引導動畫 */}
+            <OrderGuideAnimation
+                isActive={showOrderGuide}
+                onComplete={() => setShowOrderGuide(false)}
+            />
+
             {/* 離線指示器 */}
             <OfflineIndicator />
 
