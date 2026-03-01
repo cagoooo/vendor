@@ -30,11 +30,11 @@
   <link rel="terms-of-service" href="./terms.html" />
 
   <!-- Icons -->
-  <link rel="icon" type="image/png" href="./icons/icon-512.png" />
-  <link rel="apple-touch-icon" href="./icons/icon-512.png" />
+  <link rel="icon" type="image/png" href="/vendor/icons/icon-512.png" />
+  <link rel="apple-touch-icon" href="/vendor/icons/icon-512.png" />
 
   <!-- Manifest -->
-  <link rel="manifest" href="./manifest.json" />
+  <link rel="manifest" href="/vendor/manifest.json" />
 
   <title>校園點餐系統</title>
 
@@ -128,9 +128,9 @@
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        // 使用相對路徑以支援子目錄部署
-        const swPath = new URL('./sw.js', window.location.href).href;
-        navigator.serviceWorker.register(swPath)
+        // 使用絕對路徑避免子路由下找不到 sw.js
+        const swPath = '/vendor/sw.js';
+        navigator.serviceWorker.register(swPath, { scope: '/vendor/' })
           .then(reg => console.log('SW registered:', reg.scope))
           .catch(err => console.log('SW registration failed:', err));
       });
