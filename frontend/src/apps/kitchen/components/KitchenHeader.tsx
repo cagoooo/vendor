@@ -6,6 +6,9 @@ import { LayoutDashboard, ChefHat, Package, PieChart } from 'lucide-react';
 import { notificationSound } from '../../../services/notificationSound';
 import Swal from 'sweetalert2';
 import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { db } from '../../../services/firebase';
 
 export interface KitchenHeaderProps {
     // 班級相關
@@ -50,6 +53,24 @@ export function KitchenHeader({
     onClearAll,
 }: KitchenHeaderProps) {
     const navigate = useNavigate();
+    const [pendingUserCount, setPendingUserCount] = useState(0);
+
+    useEffect(() => {
+        if (!isOwner) return;
+
+        const q = query(
+            collection(db, 'users'),
+            where('role', '==', 'pending')
+        );
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            setPendingUserCount(snapshot.size);
+        }, (error) => {
+            console.error('Listen pending users error:', error);
+        });
+
+        return () => unsubscribe();
+    }, [isOwner]);
 
     const handleOpenSettings = () => {
         const soundSettings = notificationSound.getSettings();
@@ -98,8 +119,9 @@ export function KitchenHeader({
                     </div>
                     
                     ${isOwner ? `
-                    <button id="admin-btn" class="w-full bg-gradient-to-r from-purple-600 to-pink-500 text-white font-bold py-3 px-4 rounded-lg">
+                    <button id="admin-btn" class="w-full bg-gradient-to-r from-purple-600 to-pink-500 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2">
                         🔧 管理中心
+                        ${pendingUserCount > 0 ? `<span class="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">${pendingUserCount}</span>` : ''}
                     </button>
                     <button id="clear-btn" class="mt-4 w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg">
                         🗑️ 清除所有資料
@@ -214,10 +236,15 @@ export function KitchenHeader({
                         {/* 設定按鈕 */}
                         <button
                             onClick={handleOpenSettings}
-                            className="text-gray-400 hover:text-white p-2 md:p-2.5 bg-gray-700 rounded-lg transition"
+                            className="relative text-gray-400 hover:text-white p-2 md:p-2.5 bg-gray-700 rounded-lg transition"
                             title="設定"
                         >
                             <Settings className="w-4 h-4 md:w-5 md:h-5" />
+                            {isOwner && pendingUserCount > 0 && (
+                                <span className="absolute -top-1 -right-1 bg-gradient-to-r from-purple-600 to-pink-500 text-white text-[10px] md:text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-lg transform scale-90 md:scale-100">
+                                    {pendingUserCount}
+                                </span>
+                            )}
                         </button>
                     </div>
                 </div>

@@ -144,7 +144,7 @@ export function InventoryPanel({
     const handleAddItem = async () => {
         const categoryOptions = categories.map(c =>
             `<option value="${c.id}">${c.icon} ${c.name}</option>`
-        ).join('');
+        ).join('') + `<option value="ADD_NEW" style="color: #fb923c; font-weight: bold;">➕ 新增自訂分類...</option>`;
 
         const { value } = await Swal.fire({
             title: '新增品項',
@@ -196,6 +196,20 @@ export function InventoryPanel({
         });
 
         if (value && currentClassId) {
+            if (value.category === 'ADD_NEW') {
+                Swal.fire({
+                    title: '新增自訂分類',
+                    text: '即將為您開啟分類管理。新增完分類後，請再次點擊「新增品項」！',
+                    icon: 'info',
+                    background: '#1f2937',
+                    color: '#fff',
+                    confirmButtonColor: '#10b981',
+                }).then(() => {
+                    handleManageCategories();
+                });
+                return;
+            }
+
             await addClassMenuItem(currentClassId, value.name!, parseInt(value.price!), parseInt(value.stock!) || 0, value.category || 'main');
             onRefresh();
         }
@@ -205,7 +219,7 @@ export function InventoryPanel({
     const handleChangeCategory = async (item: MenuItem) => {
         const categoryOptions = categories.map(c =>
             `<option value="${c.id}" ${item.category === c.id ? 'selected' : ''}>${c.icon} ${c.name}</option>`
-        ).join('');
+        ).join('') + `<option value="ADD_NEW" style="color: #fb923c; font-weight: bold;">➕ 新增自訂分類...</option>`;
 
         const { value } = await Swal.fire({
             title: '選擇分類',
@@ -219,6 +233,20 @@ export function InventoryPanel({
         });
 
         if (value && currentClassId && value !== item.category) {
+            if (value === 'ADD_NEW') {
+                Swal.fire({
+                    title: '新增自訂分類',
+                    text: '即將為您開啟分類管理。新增完了之後，請再點一次更改分類喔！',
+                    icon: 'info',
+                    background: '#1f2937',
+                    color: '#fff',
+                    confirmButtonColor: '#10b981',
+                }).then(() => {
+                    handleManageCategories();
+                });
+                return;
+            }
+
             await updateClassMenuItem(currentClassId, item.id, { category: value });
             onRefresh();
         }

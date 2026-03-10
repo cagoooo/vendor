@@ -706,9 +706,14 @@ export async function deleteMenuItemImage(
 
 // 預設分類
 const DEFAULT_CATEGORIES: CategoryItem[] = [
-    { id: 'main', name: '主食', icon: '🍛', order: 1 },
-    { id: 'drink', name: '飲料', icon: '🥤', order: 2 },
-    { id: 'dessert', name: '點心', icon: '🍰', order: 3 }
+    { id: 'main', name: '主食/便當', icon: '🍱', order: 1 },
+    { id: 'noodles', name: '麵食', icon: '🍜', order: 2 },
+    { id: 'burger', name: '漢堡/輕食', icon: '🍔', order: 3 },
+    { id: 'snack', name: '炸物/小吃', icon: '🍟', order: 4 },
+    { id: 'soup', name: '湯品', icon: '🥣', order: 5 },
+    { id: 'drink', name: '飲料', icon: '🥤', order: 6 },
+    { id: 'dessert', name: '甜點/冰品', icon: '🍦', order: 7 },
+    { id: 'other', name: '其他', icon: '📦', order: 8 }
 ];
 
 /**
