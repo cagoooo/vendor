@@ -2,104 +2,218 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ============ 輔助函數 ============
+    // ============================
+    // 🔧 共用輔助函式
+    // ============================
 
-    // 檢查是否已登入
-    function isSignedIn() {
+    function isAuthenticated() {
       return request.auth != null;
     }
 
-    // 取得用戶資料（使用 get 函數）
-    function getUserData() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    function isStaffAdmin() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/artifacts/default-app-id/public/data/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/artifacts/default-app-id/public/data/users/$(request.auth.uid)).data.role == 'admin';
     }
 
-    // 檢查是否有權管理特定班級
-    function isClassAdminOf(classId) {
-      let userData = getUserData();
-      return isSignedIn() && (
-        userData.role == 'owner' ||
-        (userData.role == 'classAdmin' && userData.classId == classId)
+    function isRepairAdmin() {
+      return request.auth != null && (
+        request.auth.token.email in ['ipad@mail2.smes.tyc.edu.tw'] ||
+        (
+          exists(/databases/$(database)/documents/system/adminConfig) &&
+          request.auth.token.email in get(/databases/$(database)/documents/system/adminConfig).data.emails
+        )
+      );
+    }
+    
+    function isKitchenAdmin() {
+      return request.auth != null && (
+        request.auth.token.email in ['cagooo@gmail.com'] ||
+        (
+          exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'owner'
+        )
       );
     }
 
-    // ============ 用戶資料 ============
-    // 注意：此路徑的規則不能呼叫 isOwner() 或 getUserData()，否則會造成遞迴
-    match /users/{userId} {
-      // 用戶可讀取/寫入自己的資料
-      allow read, write: if isSignedIn() && request.auth.uid == userId;
+    function isValidRepair(data) {
+      return data.keys().hasAll([
+        'roomId', 'roomCode', 'roomName',
+        'category', 'itemType', 'description',
+        'priority', 'reporterName', 'status', 'createdAt'
+      ])
+      && data.roomId is string
+      && data.category is string
+      && data.description is string
+      && data.reporterName is string
+      && data.priority is string
+      && data.status is string
+      && data.description.size() > 0
+      && data.description.size() <= 1000
+      && data.reporterName.size() > 0
+      && data.reporterName.size() <= 50
+      && data.priority in ['low', 'normal', 'high', 'urgent']
+      && data.status == 'pending'
+      && data.category in ['IT', 'GENERAL'];
     }
 
-    // ============ 班級廚房主文件 ============
+    // ============================
+    // 🍽️ 【班級點餐系統】
+    // ============================
+
+    match /users/{uid} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && request.auth.uid == uid;
+      allow update: if isAuthenticated() && request.auth.uid == uid;
+      allow update, delete: if isKitchenAdmin();
+    }
+    
     match /kitchens/{classId} {
-      // 公開讀取（顧客選擇班級用）
+      allow read: if isAuthenticated();
+      allow write: if isKitchenAdmin();
+      
+      match /{document=**} {
+        allow read: if isAuthenticated();
+        allow write: if isKitchenAdmin() || (
+            isAuthenticated() && 
+            exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.classId == classId
+        );
+      }
+    }
+
+    // ============================
+    // 🖼️ 【3D 畫廊】使用者圖片與設定
+    // ============================
+
+    // 圖片清單：本人可讀寫；若相簿公開，任何人可讀
+    match /users/{uid}/images/{imageId} {
+      allow read: if request.auth != null && request.auth.uid == uid
+        || (
+          exists(/databases/$(database)/documents/users/$(uid)/profile/info)
+          && get(/databases/$(database)/documents/users/$(uid)/profile/info).data.isPublic == true
+        );
+      allow write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // 個人設定（isPublic 等）：本人可讀寫；公開相簿可讀
+    match /users/{uid}/profile/{doc} {
+      allow read: if request.auth != null && request.auth.uid == uid
+        || (
+          exists(/databases/$(database)/documents/users/$(uid)/profile/info)
+          && get(/databases/$(database)/documents/users/$(uid)/profile/info).data.isPublic == true
+        );
+      allow write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // ============================
+    // 👤 【修繕系統】管理員設定
+    // ============================
+    match /system/adminConfig {
       allow read: if true;
-      // 登入管理員可更新（owner 或 classAdmin）
-      allow write: if isClassAdminOf(classId);
+      allow write: if isRepairAdmin();
     }
 
-    // ============ 班級廚房 - 菜單 ============
-    match /kitchens/{classId}/menuItems/{itemId} {
-      // 公開讀取（顧客看菜單）
+    match /system/mapConfig {
       allow read: if true;
-      // 管理員可完整 CRUD
-      allow create, delete: if isClassAdminOf(classId);
-      // 管理員或任何人可更新庫存
-      allow update: if isClassAdminOf(classId) ||
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stock', 'updatedAt']);
+      allow write: if isRepairAdmin();
     }
 
-    // ============ 班級廚房 - 訂單 ============
-    match /kitchens/{classId}/orders/{orderId} {
-      // 公開建立（顧客下單）和讀取（查看狀態）
-      allow create, read: if true;
-      // 管理員可更新/刪除
-      allow update, delete: if isClassAdminOf(classId);
-    }
-
-    // ============ 班級廚房 - 每日銷售統計 ============
-    match /kitchens/{classId}/dailySales/{date} {
-      allow read, write: if true;
-    }
-
-    // ============ 班級廚房 - 訂單計數器 ============
-    match /kitchens/{classId}/orderCounts/{date} {
-      allow read, write: if true;
-    }
-
-    // ============ 班級廚房 - 系統設定 ============
-    match /kitchens/{classId}/system/{docId} {
-      // 公開讀取（顧客知道是否營業中）
+    match /system/notificationConfig {
       allow read: if true;
-      // 管理員可修改
-      allow write: if isClassAdminOf(classId);
+      allow write: if isRepairAdmin();
     }
 
-    // ============ 頂層集合（向下相容） ============
-
-    match /menuItems/{itemId} {
+    // ============================
+    // 🔧 【修繕系統】報修單
+    // ============================
+    match /repairs/{repairId} {
       allow read: if true;
-      allow update: if isSignedIn() ||
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stock', 'updatedAt']);
-      allow create, delete: if isSignedIn();
+      allow create: if isValidRepair(request.resource.data);
+      allow update: if isRepairAdmin() || (
+        resource.data.status == 'pending' &&
+        request.resource.data.status == 'cancelled' &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])
+      );
+      allow delete: if isRepairAdmin();
+
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if isRepairAdmin()
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 500;
+        allow update, delete: if isRepairAdmin();
+      }
     }
 
-    match /orders/{orderId} {
-      allow create, read: if true;
-      allow update, delete: if isSignedIn();
+    // ============================
+    // 🤖 【AI 客服系統】
+    // ============================
+    match /chats/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
     }
 
-    match /system/{docId} {
-      allow read: if true;
-      allow write: if isSignedIn();
+    match /knowledge/{doc} {
+      allow read: if request.auth != null;
+      allow write: if false;
     }
 
-    match /dailySales/{date} {
-      allow read, write: if true;
+    match /config/{doc} {
+      allow read, write: if false;
     }
 
-    match /orderCounts/{date} {
-      allow read, write: if true;
+    match /usage/{uid}/{rest=**} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // ============================
+    // 🏫 【行政業務系統】
+    // ============================
+    match /artifacts/{appId}/public/data/{collection}/{docId} {
+      allow read: if isAuthenticated() && collection == 'users';
+      allow create: if isAuthenticated() && collection == 'users' && docId == request.auth.uid;
+      allow update: if isAuthenticated() && collection == 'users' && docId == request.auth.uid;
+      allow create, update, delete: if isAuthenticated() && collection == 'users' && isStaffAdmin();
+
+      allow read: if isAuthenticated() && collection == 'school_events';
+      allow create: if isAuthenticated() && collection == 'school_events';
+      allow update: if isAuthenticated() && collection == 'school_events';
+      allow delete: if isAuthenticated() && collection == 'school_events';
+
+      allow read, create: if isAuthenticated() && collection == 'tags';
+      allow update, delete: if isAuthenticated() && collection == 'tags' && isStaffAdmin();
+
+      allow read: if isAuthenticated() && collection == 'event_templates';
+      allow create: if isAuthenticated() && collection == 'event_templates';
+      allow update, delete: if isAuthenticated() && collection == 'event_templates'
+        && (resource.data.createdBy == request.auth.uid || isStaffAdmin());
+
+      allow read, create, update, delete: if isAuthenticated() && collection == 'reminders';
+    }
+
+    match /artifacts/{appId}/public/data/school_events/{eventId}/comments/{commentId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && resource.data.authorId == request.auth.uid;
+      allow delete: if isAuthenticated() && (resource.data.authorId == request.auth.uid || isStaffAdmin());
+    }
+
+    match /line_api_stats/{document=**} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+
+    match /line_followers/{followerId} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+
+    // ============================
+    // 🚫 預設拒絕（安全兜底）
+    // ============================
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
