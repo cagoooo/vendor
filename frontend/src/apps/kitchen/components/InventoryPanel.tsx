@@ -38,71 +38,108 @@ export function InventoryPanel({
     onRefresh,
     onCategoriesUpdate,
 }: InventoryPanelProps) {
-    const [, setLocalCategories] = useState(categories);
+    const [] = useState(categories);
 
     // 管理分類
     const handleManageCategories = async () => {
-        const emojiOptions = ['🍔', '🍛', '🍜', '🍝', '🍕', '🍟', '🌮', '🌯', '🥤', '☕', '🧋', '🍹', '🍰', '🍩', '🍪', '🧁', '🍦', '🍨', '🥗', '🥪', '🍱', '🍙', '🍘', '🍢', '🥟', '🍗', '🍖', '🥩', '🌭', '🥓'];
+        const emojiOptions = ['🍱', '🍜', '🍔', '🍟', '🥣', '🥤', '🍦', '📦', '🥡', '🍛', '🍝', '🍕', '🌮', '🌯', '☕', '🧋', '🍹', '🍰', '🍩', '🍪', '🧁', '🍨', '🥗', '🥪', '🍙', '🍘', '🍢', ' dumpling', '🍗', '🍖', '🥩', '🌭', '🥓'];
 
-        const buildCategoryHtml = (cats: CategoryItem[], selectedEmoji = '🍔') => `
-            <div class="text-left max-h-40 overflow-y-auto mb-4">
+        const buildCategoryHtml = (cats: CategoryItem[], selectedEmoji = '🍱') => `
+            <div class="text-left max-h-48 overflow-y-auto mb-4 bg-gray-800/50 rounded-xl p-2 border border-gray-700">
                 ${cats.map((c) => `
-                    <div class="flex items-center justify-between bg-gray-700 rounded-lg p-3 mb-2">
-                        <span class="text-base">${c.icon} ${c.name}</span>
-                        <button class="cat-del text-red-400 hover:text-red-300 text-sm px-3 py-1" data-id="${c.id}">刪除</button>
+                    <div class="flex items-center justify-between bg-gray-700 rounded-lg p-3 mb-2 border border-gray-600 shadow-sm">
+                        <span class="text-base font-bold">${c.icon} ${c.name}</span>
+                        <button class="cat-del text-red-400 hover:text-red-300 hover:bg-red-900/40 text-sm px-3 py-1 rounded-md transition" data-id="${c.id}">刪除</button>
                     </div>
                 `).join('')}
             </div>
-            <div class="border-t border-gray-600 pt-4">
-                <p class="text-sm text-gray-400 mb-2">新增分類</p>
+            <div class="border-t border-gray-700 pt-4">
+                <div class="flex justify-between items-center mb-2">
+                    <p class="text-sm text-gray-400">新增或套用預設</p>
+                    <button id="apply-defaults" class="text-[10px] bg-blue-600/30 text-blue-300 hover:bg-blue-600/50 px-2 py-1 rounded border border-blue-500/30 transition">📦 載入豐富預設值</button>
+                </div>
                 <input type="hidden" id="cat-icon" value="${selectedEmoji}">
-                <div class="grid grid-cols-6 gap-1 mb-3 max-h-24 overflow-y-auto p-1 bg-gray-800 rounded-lg">
+                <div class="grid grid-cols-6 gap-2 mb-3 max-h-24 overflow-y-auto p-2 bg-gray-800 rounded-lg border border-gray-700">
                     ${emojiOptions.map(e => `
-                        <button type="button" class="emoji-btn text-xl p-2 rounded hover:bg-gray-600 transition ${e === selectedEmoji ? 'bg-orange-500' : 'bg-gray-700'}" data-emoji="${e}">${e}</button>
+                        <button type="button" class="emoji-btn text-xl p-2 rounded-lg hover:bg-gray-600 transition ${e === selectedEmoji ? 'bg-orange-500 ring-2 ring-orange-300' : 'bg-gray-700'}" data-emoji="${e}">${e}</button>
                     `).join('')}
                 </div>
-                <input id="cat-name" class="w-full h-10 px-3 rounded-lg border border-gray-600 bg-gray-700 text-white" placeholder="分類名稱">
+                <div class="flex gap-2">
+                    <input id="cat-name" class="flex-1 h-11 px-4 rounded-xl border-2 border-gray-700 bg-gray-700 text-white focus:border-orange-500 focus:outline-none transition" placeholder="分類名稱 (如：下午茶)">
+                </div>
             </div>
         `;
 
         let currentCats = [...categories];
 
-        if (currentClassId && currentCats.length > 0 && currentCats[0].id === 'main') {
-            await updateClassCategories(currentClassId, currentCats);
-        }
-
         const bindEvents = () => {
+            // 表情符號選擇
             document.querySelectorAll('.emoji-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
-                    const emoji = (e.target as HTMLElement).dataset.emoji;
+                    const emoji = (e.currentTarget as HTMLElement).dataset.emoji;
                     if (emoji) {
                         (document.getElementById('cat-icon') as HTMLInputElement).value = emoji;
-                        document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('bg-orange-500'));
-                        (e.target as HTMLElement).classList.add('bg-orange-500');
+                        document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('bg-orange-500', 'ring-2', 'ring-orange-300'));
+                        (e.currentTarget as HTMLElement).classList.add('bg-orange-500', 'ring-2', 'ring-orange-300');
                     }
                 });
             });
 
+            // 刪除分類
             document.querySelectorAll('.cat-del').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
-                    const id = (e.target as HTMLElement).dataset.id;
+                    const id = (e.currentTarget as HTMLElement).dataset.id;
                     currentCats = currentCats.filter(c => c.id !== id);
                     if (currentClassId) {
                         await updateClassCategories(currentClassId, currentCats);
-                        setLocalCategories(currentCats);
                         onCategoriesUpdate(currentCats);
                         Swal.update({ html: buildCategoryHtml(currentCats) });
                         bindEvents();
                     }
                 });
             });
+
+            // 套用預設豐富分類
+            document.getElementById('apply-defaults')?.addEventListener('click', async () => {
+                const richDefaults: CategoryItem[] = [
+                    { id: 'main', name: '主食/便當', icon: '🍱', order: 1 },
+                    { id: 'noodles', name: '麵食', icon: '🍜', order: 2 },
+                    { id: 'burger', name: '漢堡/輕食', icon: '🍔', order: 3 },
+                    { id: 'snack', name: '炸物/小吃', icon: '🍟', order: 4 },
+                    { id: 'soup', name: '湯品', icon: '🥣', order: 5 },
+                    { id: 'drink', name: '飲料', icon: '🥤', order: 6 },
+                    { id: 'dessert', name: '甜點/冰品', icon: '🍦', order: 7 },
+                    { id: 'other', name: '其他', icon: '📦', order: 8 }
+                ];
+
+                const confirm = await Swal.fire({
+                    title: '套用預設分類？',
+                    text: '這將會覆蓋目前的分類列表（已存在品項的分類不受影響，但建議事後手動檢查）。',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: '確定套用',
+                    cancelButtonText: '取消',
+                    background: '#1f2937',
+                    color: '#fff',
+                });
+
+                if (confirm.isConfirmed) {
+                    currentCats = richDefaults;
+                    if (currentClassId) {
+                        await updateClassCategories(currentClassId, currentCats);
+                        onCategoriesUpdate(currentCats);
+                        Swal.update({ html: buildCategoryHtml(currentCats) });
+                        bindEvents();
+                    }
+                }
+            });
         };
 
         const result = await Swal.fire({
-            title: '管理分類',
+            title: '管理品項分類',
             html: buildCategoryHtml(currentCats),
             showCancelButton: true,
-            confirmButtonText: '新增分類',
+            confirmButtonText: '➕ 新增當前分類',
             cancelButtonText: '關閉',
             confirmButtonColor: '#10b981',
             background: '#1f2937',
@@ -139,6 +176,7 @@ export function InventoryPanel({
             });
         }
     };
+
 
     // 新增品項
     const handleAddItem = async () => {
