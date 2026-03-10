@@ -69,11 +69,11 @@ service cloud.firestore {
     }
     
     match /kitchens/{classId} {
-      allow read: if isAuthenticated();
+      allow read: if true;
       allow write: if isKitchenAdmin();
       
       match /{document=**} {
-        allow read: if isAuthenticated();
+        allow read: if true;
         allow write: if isKitchenAdmin() || (
             isAuthenticated() && 
             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
