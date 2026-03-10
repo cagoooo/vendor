@@ -5,6 +5,7 @@ import { ClassSelector } from './ClassSelector';
 import { LayoutDashboard, ChefHat, Package, PieChart } from 'lucide-react';
 import { notificationSound } from '../../../services/notificationSound';
 import Swal from 'sweetalert2';
+import { useNavigate } from 'react-router-dom';
 
 export interface KitchenHeaderProps {
     // 班級相關
@@ -48,6 +49,7 @@ export function KitchenHeader({
     onLogout,
     onClearAll,
 }: KitchenHeaderProps) {
+    const navigate = useNavigate();
 
     const handleOpenSettings = () => {
         const soundSettings = notificationSound.getSettings();
@@ -96,14 +98,14 @@ export function KitchenHeader({
                     </div>
                     
                     ${isOwner ? `
-                    <a href="#/admin" class="block w-full bg-gradient-to-r from-purple-600 to-pink-500 text-white font-bold py-3 px-4 rounded-lg text-center">
+                    <button id="admin-btn" class="w-full bg-gradient-to-r from-purple-600 to-pink-500 text-white font-bold py-3 px-4 rounded-lg">
                         🔧 管理中心
-                    </a>
-                    <button id="clear-btn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg">
+                    </button>
+                    <button id="clear-btn" class="mt-4 w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg">
                         🗑️ 清除所有資料
                     </button>
                     ` : ''}
-                    <button id="logout-btn" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-lg">
+                    <button id="logout-btn" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-lg ${isOwner ? 'mt-4' : ''}">
                         👋 登出
                     </button>
                 </div>
@@ -133,6 +135,12 @@ export function KitchenHeader({
                 // 測試音效
                 document.getElementById('test-sound-btn')?.addEventListener('click', () => {
                     notificationSound.playTest();
+                });
+
+                // 管理中心
+                document.getElementById('admin-btn')?.addEventListener('click', () => {
+                    Swal.close();
+                    navigate('/admin');
                 });
 
                 // 清除資料
