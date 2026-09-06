@@ -2,6 +2,8 @@
 
 🌐 **線上使用：[校園點餐系統](https://cagoooo.github.io/vendor/)**
 
+> 📌 **目前版本：v1.0.0**（版本管理自 2026-09-06 起，依據 `version.json`）
+
 基於 Firebase + React 的現代化校園園遊會點餐系統。
 
 ## 🌟 功能特色
