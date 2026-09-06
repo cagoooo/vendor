@@ -1,5 +1,7 @@
 # 校園點餐系統 (Campus Food Order)
 
+🌐 **線上使用：[校園點餐系統](https://cagoooo.github.io/vendor/)**
+
 基於 Firebase + React 的現代化校園園遊會點餐系統。
 
 ## 🌟 功能特色
@@ -224,7 +226,7 @@ MIT License
 - Repository：`cagoooo/vendor`
 - 可見性：公開
 - 主要技術：TypeScript、Firebase
-- 線上入口：未在 GitHub repository metadata 設定
+- 線上入口：<https://cagoooo.github.io/vendor/>
 
 ### 可以怎麼應用
 
