@@ -4,6 +4,10 @@
 
 ---
 
+## 🛠️ v1.0.3（2026-11-18，版本號以 `version.json` 為準）
+
+- App 內建瀏覽器防護：LINE 自動改用系統瀏覽器；Android 臉書／IG 自動叫出 Chrome；iPhone 顯示引導（可選擇先不登入繼續點餐）。離線快取升為 `campus-food-v5`。
+
 ## 🛠️ v1.0.2（2026-11-17，版本號以 `version.json` 為準）
 
 - 修正離線快取只清除自己的舊快取，不再誤刪同網域其他工具的快取（`frontend/public/sw.js` 只刪 `campus-food-` 開頭的舊版）。

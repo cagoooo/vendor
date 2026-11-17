@@ -1,6 +1,6 @@
 // 同一網域（cagoooo.github.io）的所有工具共用快取空間，只能清除自己這個前綴的快取
 const CACHE_PREFIX = 'campus-food-';
-const CACHE_NAME = CACHE_PREFIX + 'v4';
+const CACHE_NAME = CACHE_PREFIX + 'v5';
 
 // 動態獲取 base path（支援 /vendor/ 子目錄部署）
 const getBasePath = () => {
