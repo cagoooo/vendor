@@ -4,6 +4,10 @@
 
 ---
 
+## 🛠️ v1.0.4（2026-11-18，版本號以 `version.json` 為準）
+
+- 在 LINE／FB 等 App 內建瀏覽器按 Google 登入前先提醒改用預設瀏覽器，不再直接撞 Google 403。離線快取升為 `campus-food-v6`。
+
 ## 🛠️ v1.0.3（2026-11-18，版本號以 `version.json` 為準）
 
 - App 內建瀏覽器防護：LINE 自動改用系統瀏覽器；Android 臉書／IG 自動叫出 Chrome；iPhone 顯示引導（可選擇先不登入繼續點餐）。離線快取升為 `campus-food-v5`。
