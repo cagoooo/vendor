@@ -1,4 +1,6 @@
-const CACHE_NAME = 'campus-food-v4';
+// 同一網域（cagoooo.github.io）的所有工具共用快取空間，只能清除自己這個前綴的快取
+const CACHE_PREFIX = 'campus-food-';
+const CACHE_NAME = CACHE_PREFIX + 'v4';
 
 // 動態獲取 base path（支援 /vendor/ 子目錄部署）
 const getBasePath = () => {
@@ -19,7 +21,7 @@ self.addEventListener('activate', (event) => {
         caches.keys().then((cacheNames) => {
             return Promise.all(
                 cacheNames
-                    .filter((name) => name !== CACHE_NAME)
+                    .filter((name) => name.startsWith(CACHE_PREFIX) && name !== CACHE_NAME)
                     .map((name) => caches.delete(name))
             );
         })
