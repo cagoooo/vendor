@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getAllKitchens, type Kitchen } from '../../services/classApi';
 import { Loader2, Store, ChevronRight, MapPin, Clock, ShoppingBag } from 'lucide-react';
+import { SiteCredit } from '../../components/SiteCredit';
 
 export function ClassSelectorPage() {
     const [kitchens, setKitchens] = useState<Kitchen[]>([]);
@@ -87,6 +88,7 @@ export function ClassSelectorPage() {
                         <p className="text-xs text-gray-600 mt-3">
                             © 2026 校園點餐系統. All rights reserved.
                         </p>
+                        <SiteCredit />
                     </div>
                 </footer>
             </div>
@@ -215,6 +217,7 @@ export function ClassSelectorPage() {
                     <p className="text-xs text-gray-600 mt-4">
                         © 2026 校園點餐系統. All rights reserved.
                     </p>
+                    <SiteCredit />
                 </div>
             </footer>
         </div>

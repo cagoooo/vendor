@@ -11,6 +11,7 @@ import { CartDrawer } from '../../components/order/CartDrawer';
 import { OrderHistoryModal } from '../../components/order/OrderHistoryModal';
 import { ShareModal } from '../../components/share/ShareModal';
 import { InstallBanner } from '../../components/pwa/InstallBanner';
+import { SiteCredit } from '../../components/SiteCredit';
 import { OrderGuideAnimation } from '../../components/animations';
 import { rateLimiter } from '../../services/rateLimiter';
 import { validateOrderInput } from '../../utils/validation';
@@ -659,6 +660,7 @@ export function CustomerApp() {
                     <p className="text-xs text-gray-600 mt-4">
                         © 2026 校園點餐系統. All rights reserved.
                     </p>
+                    <SiteCredit />
                 </div>
             </footer>
         </div>

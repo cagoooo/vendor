@@ -146,6 +146,45 @@
             color: #52525b;
             font-size: 0.875rem;
         }
+
+        /* 作者署名列 */
+        .site-credit {
+            margin: 1rem auto 0;
+            padding-top: 1rem;
+            max-width: 640px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: #a1a1aa;
+            font-size: 0.95rem;
+        }
+
+        .site-credit a {
+            color: #f97316;
+            font-weight: bold;
+            text-decoration: none;
+            border-bottom: 1px dotted currentColor;
+            padding: 2px 0 1px;
+        }
+
+        .site-credit a:hover {
+            color: #fb923c;
+        }
+
+        @media (max-width: 640px) {
+            .site-credit__school {
+                display: block;
+                margin-top: 4px;
+            }
+
+            .site-credit__dot {
+                display: none;
+            }
+        }
+
+        @media print {
+            .site-credit {
+                display: none;
+            }
+        }
     </style>
 </head>
 
@@ -189,6 +228,9 @@
             <a href="./terms.html">📜 服務條款</a>
         </div>
         <p class="copyright">© 2026 校園點餐系統. All rights reserved.</p>
+        <p class="site-credit">Made with <span aria-label="愛心">❤️</span> by
+            <a href="https://cagoooo.github.io/Akai/" target="_blank" rel="noopener noreferrer" title="阿凱老師教育科技創新專區">阿凱老師</a><span class="site-credit__school"><span class="site-credit__dot" aria-hidden="true">・</span>桃園市龍潭區石門國民小學</span>
+        </p>
     </footer>
 </body>
 
